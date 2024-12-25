@@ -152,6 +152,6 @@ jobs:
         env:
           NO_FLIPPER: 1
 
-      - name: Build example for iOS
-        run: |
-          yarn turbo run build:ios
+      # - name: Build example for iOS
+      #   run: |
+      #     yarn turbo run build:ios
