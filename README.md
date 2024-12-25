@@ -17,6 +17,8 @@ npm install react-native-urovo
 First, you have to open/init the scanner
 
 ```ts
+import { closeScanner, openScanner } from 'react-native-urovo';
+
 useEffect(() => {
   openScanner();
 
@@ -29,6 +31,8 @@ useEffect(() => {
 Then, add listener on module, `ON_SCAN` event type
 
 ```ts
+import Urovo, { type ScanResult } from 'react-native-urovo';
+
 useEffect(() => {
   let eventListener: EmitterSubscription | undefined;
   if (Urovo) {
