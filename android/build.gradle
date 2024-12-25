@@ -64,9 +64,18 @@ android {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
-
   }
 
+  sourceSets {
+    main {
+          if (isNewArchitectureEnabled()) {
+              java.srcDirs += ['src/newarch']
+          } else {
+              java.srcDirs += ['src/oldarch']
+          }
+      }
+  }
+  
   buildFeatures {
     buildConfig true
   }
@@ -111,6 +120,9 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+  // https://github.com/urovosamples/SDK_ReleaseforAndroid
+  implementation files('libs/urovo_platform_sdk_v4.1.0326.jar')
 }
 
 if (isNewArchitectureEnabled()) {
