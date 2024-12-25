@@ -120,9 +120,7 @@
       "release": true
     },
     "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": "angular"
-      }
+      "@release-it/conventional-changelog": {}
     }
   },
   "eslintConfig": {
