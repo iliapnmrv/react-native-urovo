@@ -28,10 +28,10 @@ useEffect(() => {
 }, []);
 ```
 
-Then, add listener on module, `ON_SCAN` event type
+Then, add listener on module, `UROVO_EVENTS.ON_SCAN` event type
 
 ```ts
-import Urovo, { type ScanResult } from 'react-native-urovo';
+import Urovo, { type ScanResult, UROVO_EVENTS } from 'react-native-urovo';
 
 useEffect(() => {
   let eventListener: EmitterSubscription | undefined;
@@ -39,7 +39,7 @@ useEffect(() => {
     // used only for type safety
     const eventEmitter = new NativeEventEmitter(Urovo);
     eventListener = eventEmitter.addListener(
-      'ON_SCAN',
+      UROVO_EVENTS.ON_SCAN,
       (scan: ScanResult) => {}
     );
   }

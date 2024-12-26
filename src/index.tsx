@@ -5,6 +5,10 @@ export type ScanResult = {
   type: number;
 };
 
+export enum UROVO_EVENTS {
+  ON_SCAN = 'ON_SCAN',
+}
+
 export function openScanner() {
   return Urovo?.openScanner();
 }

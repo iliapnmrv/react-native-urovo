@@ -9,6 +9,7 @@ import {
 import Urovo, {
   closeScanner,
   openScanner,
+  UROVO_EVENTS,
   type ScanResult,
 } from 'react-native-urovo';
 
@@ -40,7 +41,7 @@ export default function App() {
     if (isScannerOpened && Urovo) {
       const eventEmitter = new NativeEventEmitter(Urovo);
       eventListener = eventEmitter.addListener(
-        'ON_SCAN',
+        UROVO_EVENTS.ON_SCAN,
         (scan: ScanResult) => {
           setScanResult(scan);
         }

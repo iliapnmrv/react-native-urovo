@@ -1,6 +1,6 @@
 {
   "name": "react-native-urovo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "React native bindings for urovo scanners",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
