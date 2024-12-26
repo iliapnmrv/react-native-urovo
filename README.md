@@ -2,7 +2,7 @@
 
 React native bindings for urovo scanners
 
-- Works on both old `Legacy Native Modules` and new `Turbo Native Modules` architecture
+- Works on both old `Legacy Native Modules` and new `Turbo Native Modules` architectures
 - Uses latest urovo [SDK](https://github.com/urovosamples/SDK_ReleaseforAndroid)
 - Supports latest React Native version `v0.76+`
 
@@ -35,8 +35,7 @@ import Urovo, { type ScanResult, UROVO_EVENTS } from 'react-native-urovo';
 
 useEffect(() => {
   let eventListener: EmitterSubscription | undefined;
-  if (Urovo) {
-    // used only for type safety
+  if (Urovo) { // used only for type safety
     const eventEmitter = new NativeEventEmitter(Urovo);
     eventListener = eventEmitter.addListener(
       UROVO_EVENTS.ON_SCAN,
