@@ -43,7 +43,9 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
-    "release": "dotenv release-it --ci -V"
+    "release": "dotenv release-it --ci -V",
+    "build:codegen": "bob build --target codegen",
+    "build": "bob build"
   },
   "keywords": [
     "react-native",
@@ -168,7 +170,7 @@
   },
   "codegenConfig": {
     "name": "RNUrovoSpec",
-    "type": "all",
+    "type": "modules",
     "jsSrcsDir": "src",
     "outputDir": {
       "ios": "ios/generated",
@@ -177,7 +179,7 @@
     "android": {
       "javaPackageName": "com.urovo"
     },
-    "includesGeneratedCode": false
+    "includesGeneratedCode": true
   },
   "create-react-native-library": {
     "type": "turbo-module",

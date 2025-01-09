@@ -1,24 +1,20 @@
 #import "Urovo.h"
 
-#ifdef RCT_NEW_ARCH_ENABLED
-#import <RNUrovoSpec/RNUrovoSpec.h>
-#endif
-
 @implementation Urovo
 RCT_EXPORT_MODULE()
 
-- (void)openScanner:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+RCT_EXPORT_METHOD(openScanner:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
     resolve(nil);
 }
 
-- (void)closeScanner:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+RCT_EXPORT_METHOD(closeScanner:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
     resolve(nil);
 }
 
-- (void)addListener:(NSString *)eventType {
+RCT_EXPORT_METHOD(addListener:(NSString *)eventType) {
 }
 
-- (void)removeListeners:(double)count {
+RCT_EXPORT_METHOD(removeListeners:(double)count) {
 }
 
 #ifdef RCT_NEW_ARCH_ENABLED

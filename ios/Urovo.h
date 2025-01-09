@@ -1,15 +1,11 @@
+#ifdef RCT_NEW_ARCH_ENABLED
+#import "RNUrovoSpec.h"
+
+@interface Urovo : NSObject <NativeUrovoSpec>
+#else
 #import <React/RCTBridgeModule.h>
 
-#ifdef RCT_NEW_ARCH_ENABLED
-#import <RNUrovoSpec/RNUrovoSpec.h>
+@interface Urovo : NSObject <RCTBridgeModule>
 #endif
 
-@interface Urovo: NSObject <RCTBridgeModule>
-
 @end
-
-#ifdef RCT_NEW_ARCH_ENABLED
-@interface Urovo : NSObject <NativeUrovoSpec>
-
-@end
-#endif

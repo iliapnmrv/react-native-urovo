@@ -5,12 +5,11 @@ import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
-import com.urovo.UrovoModuleImpl
 import java.util.HashMap
 
 class UrovoPackage : BaseReactPackage() {
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
-    return if (name == UrovoModuleImpl.NAME) {
+    return if (name == UrovoModule.NAME) {
       UrovoModule(reactContext)
     } else {
       null
@@ -20,12 +19,12 @@ class UrovoPackage : BaseReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
     return ReactModuleInfoProvider {
 
-      val isTurboModule: Boolean = com.urovo.BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+      val isTurboModule: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
 
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[UrovoModuleImpl.NAME] = ReactModuleInfo(
-        UrovoModuleImpl.NAME,
-        UrovoModuleImpl.NAME,
+      moduleInfos[UrovoModule.NAME] = ReactModuleInfo(
+        UrovoModule.NAME,
+        UrovoModule.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         true,  // hasConstants
