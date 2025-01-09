@@ -168,7 +168,7 @@
   },
   "codegenConfig": {
     "name": "RNUrovoSpec",
-    "type": "modules",
+    "type": "all",
     "jsSrcsDir": "src",
     "outputDir": {
       "ios": "ios/generated",
@@ -177,7 +177,7 @@
     "android": {
       "javaPackageName": "com.urovo"
     },
-    "includesGeneratedCode": true
+    "includesGeneratedCode": false
   },
   "create-react-native-library": {
     "type": "turbo-module",
