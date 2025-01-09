@@ -1,6 +1,9 @@
+#ifdef RCT_NEW_ARCH_ENABLED
+#import "RNUrovoSpec.h"
+#endif
 
-#import "generated/RNUrovoSpec/RNUrovoSpec.h"
-
+#ifdef RCT_NEW_ARCH_ENABLED
 @interface Urovo : NSObject <NativeUrovoSpec>
 
 @end
+#endif

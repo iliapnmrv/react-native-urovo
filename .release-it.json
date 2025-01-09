@@ -11,7 +11,9 @@
     "release": true
   },
   "plugins": {
-    "@release-it/conventional-changelog": {}
+    "@release-it/conventional-changelog": {
+      "preset": "angular"
+    }
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
