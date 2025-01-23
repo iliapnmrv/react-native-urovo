@@ -16,8 +16,9 @@ This library tries to support as many RN versions as possible. For now the goal 
 | 1.0.0  | 0.77 | yes |
 | 1.0.0  | 0.76 | yes |
 | 1.0.0  | 0.75 | no  |
+| 1.0.0  | 0.74 | no  |
 
-versions < 0.74 TBA
+versions <= 0.73 are not supported
 
 ## Installation
 
