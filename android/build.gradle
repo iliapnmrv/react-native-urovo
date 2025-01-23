@@ -64,6 +64,16 @@ android {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+
+    sourceSets {
+      main {
+        if (isNewArchitectureEnabled()) {
+          java.srcDirs += ['src/newarch']
+        } else {
+          java.srcDirs += ['src/oldarch']
+        }
+      }
+    }
   }
 
   buildFeatures {
@@ -88,14 +98,10 @@ android {
   sourceSets {
     main {
       if (isNewArchitectureEnabled()) {
-        java.srcDirs += [
-          "src/newarch",
-          // Codegen specs
-          "generated/java",
-          "generated/jni"
-        ]
-      } else {
-        java.srcDirs += ["src/oldarch"]
+          java.srcDirs += [
+            "generated/java",
+            "generated/jni"
+          ]
       }
     }
   }
