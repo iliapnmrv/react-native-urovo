@@ -4,7 +4,20 @@ React native bindings for urovo scanners
 
 - Works on both old `Legacy Native Modules` and new `Turbo Native Modules` architectures
 - Uses latest urovo [SDK](https://github.com/urovosamples/SDK_ReleaseforAndroid)
-- Supports latest React Native version `v0.76+`
+- Supports latest React Native version `v0.77+`
+
+## Compatibility
+
+This library tries to support as many RN versions as possible. For now the goal is to support the same versions as RN itself, you can learn more [here](https://github.com/reactwg/react-native-releases/blob/main/docs/support.md)
+
+
+| RN-urovo version | RN version | Supports New Architecture |
+|------------|------------------|---------------------------|
+| 1.0.0  | 0.77 | yes |
+| 1.0.0  | 0.76 | yes |
+| 1.0.0  | 0.75 | no  |
+
+versions < 0.74 TBA
 
 ## Installation
 
