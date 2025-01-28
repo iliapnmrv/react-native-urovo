@@ -9,7 +9,7 @@ import java.util.HashMap
 
 class UrovoPackage : BaseReactPackage() {
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
-    return if (name == UrovoModule.NAME) {
+    return if (name == UrovoModuleImpl.NAME) {
       UrovoModule(reactContext)
     } else {
       null
@@ -22,9 +22,9 @@ class UrovoPackage : BaseReactPackage() {
       val isTurboModule: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
 
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[UrovoModule.NAME] = ReactModuleInfo(
-        UrovoModule.NAME,
-        UrovoModule.NAME,
+      moduleInfos[UrovoModuleImpl.NAME] = ReactModuleInfo(
+        UrovoModuleImpl.NAME,
+        UrovoModuleImpl.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         true,  // hasConstants

@@ -1,22 +1,18 @@
 package com.urovo
 
-import android.content.IntentFilter
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.Promise
 import android.device.ScanManager
 import android.util.Log
-import com.facebook.react.bridge.*
+import android.content.IntentFilter
 import com.urovo.BeamBroadcastReceiver
 
-class UrovoModule internal constructor(reactApplicationContext: ReactApplicationContext): UrovoSpec(reactApplicationContext) {
+class UrovoModuleImpl {
     private val scanner: ScanManager = ScanManager()
-    
+
     private var receiver: BeamBroadcastReceiver? = null
 
-    override fun getName(): String {
-        return NAME
-    }
-    
-    @ReactMethod
-    override fun openScanner(promise: Promise) {
+    fun openScanner(promise: Promise, reactApplicationContext: ReactApplicationContext) {
         try {
             scanner.openScanner()
             scanner.switchOutputMode(0)
@@ -33,28 +29,25 @@ class UrovoModule internal constructor(reactApplicationContext: ReactApplication
         }
     }
 
-    @ReactMethod
-    override fun closeScanner(promise: Promise) {
+    fun closeScanner(promise: Promise, reactApplicationContext: ReactApplicationContext) {
         try {
-            scanner.stopDecode()
-            scanner.closeScanner()
+        scanner.stopDecode()
+        scanner.closeScanner()
 
-            receiver?.let {
-                reactApplicationContext.unregisterReceiver(it)
-                receiver = null
-            }
+        receiver?.let {
+            reactApplicationContext.unregisterReceiver(it)
+            receiver = null
+        }
 
-            promise.resolve(true)
+        promise.resolve(true)
         } catch (t: Throwable) {
-            promise.reject("CLOSE_SCANNER_ERROR", t)
+        promise.reject("CLOSE_SCANNER_ERROR", t)
         }
     }
 
-    @ReactMethod
-    override fun addListener(eventName: String) {}
+    fun addListener(eventName: String) {}
 
-    @ReactMethod
-    override fun  removeListeners(count: Double) {}
+    fun  removeListeners(count: Double) {}
 
     companion object {
         const val NAME = "Urovo"

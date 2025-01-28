@@ -1,4 +1,4 @@
-package com.urovo;
+package com.urovo
 
 import android.content.BroadcastReceiver
 import android.content.Context

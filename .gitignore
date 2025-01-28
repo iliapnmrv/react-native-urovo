@@ -42,10 +42,10 @@ android.iml
 
 # Cocoapods
 #
-example/ios/Pods
+Pods
 
 # Ruby
-example/vendor/
+vendor
 
 # node.js
 #
@@ -80,5 +80,3 @@ lib/
 # React Native Codegen
 ios/generated
 android/generated
-
-.env
