@@ -9,11 +9,11 @@ class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactC
   override fun getName(): String = UrovoModuleImpl.NAME
 
   override fun openScanner(promise: Promise) {
-    implementation.openScanner(promise, reactApplicationContext)
+    implementation.open(promise, reactApplicationContext)
   }
   
   override fun closeScanner(promise: Promise) {
-    implementation.closeScanner(promise, reactApplicationContext)
+    implementation.open(promise, reactApplicationContext)
   }
 
   override fun addListener(eventName: String) {}

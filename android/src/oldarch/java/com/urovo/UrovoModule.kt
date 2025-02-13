@@ -12,11 +12,11 @@ class UrovoModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
 
   @ReactMethod
   fun openScanner(promise: Promise) {
-    implementation.openScanner(promise, reactApplicationContext)
+    implementation.open(promise, reactApplicationContext)
   }
   
   @ReactMethod
   fun closeScanner(promise: Promise) {
-    implementation.closeScanner(promise, reactApplicationContext)
+    implementation.open(promise, reactApplicationContext)
   }
 }

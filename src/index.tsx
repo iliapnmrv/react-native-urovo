@@ -9,6 +9,10 @@ export enum UROVO_EVENTS {
   ON_SCAN = 'ON_SCAN',
 }
 
+/**
+ * Opens the Urovo scanner.
+ * @returns A promise that resolves to `true` if the scanner was successfully opened, otherwise `false`.
+ */
 export function openScanner() {
   return Urovo?.openScanner();
 }

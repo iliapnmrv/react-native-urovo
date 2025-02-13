@@ -12,10 +12,45 @@ class UrovoModuleImpl {
 
     private var receiver: BeamBroadcastReceiver? = null
 
-    fun openScanner(promise: Promise, reactApplicationContext: ReactApplicationContext) {
+    fun openScanner(): Boolean {
+        var isOpenSuccessful: Boolean
         try {
-            scanner.openScanner()
-            scanner.switchOutputMode(0)
+            isOpenSuccessful = scanner.openScanner()
+        } catch(t: Throwable) {
+            // Urovo throws error if device does not have scanner module
+            // do not throw it to react native side
+            isOpenSuccessful = false
+        }
+
+        return isOpenSuccessful
+    }
+
+    fun switchOutputMode(promise: Promise) {
+        var isSwitchSuccessful: Boolean
+        try {
+            isSwitchSuccessful = scanner.switchOutputMode(0)
+
+            if (!isSwitchSuccessful) {
+                // switch output mode failure is unexpected but is possible
+                // throw error to react native side 
+                promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to intent")
+            }
+        }
+        catch(t: Throwable) {
+            promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to intent. Reason: ${t.message}")
+        }
+    }
+
+    fun open(promise: Promise, reactApplicationContext: ReactApplicationContext) {
+        try {
+            val isOpenSuccessful: Boolean = this.openScanner()
+
+            if (!isOpenSuccessful) {
+                promise.resolve(isOpenSuccessful)
+            }
+
+            // switch output mode to intent
+            this.switchOutputMode(promise)
 
             if (receiver == null) {
                 receiver = BeamBroadcastReceiver(reactApplicationContext)
@@ -23,25 +58,26 @@ class UrovoModuleImpl {
                 reactApplicationContext.registerReceiver(receiver, intentFilter)
             }
 
-            promise.resolve(true)
+            promise.resolve(isOpenSuccessful)
         } catch (t: Throwable) {
             promise.reject("OPEN_SCANNER_ERROR", t)
         }
     }
 
-    fun closeScanner(promise: Promise, reactApplicationContext: ReactApplicationContext) {
+    fun close(promise: Promise, reactApplicationContext: ReactApplicationContext) {
         try {
-        scanner.stopDecode()
-        scanner.closeScanner()
+            scanner.stopDecode()
+            scanner.closeScanner()
 
-        receiver?.let {
-            reactApplicationContext.unregisterReceiver(it)
-            receiver = null
-        }
+            receiver?.let {
+                reactApplicationContext.unregisterReceiver(it)
+                receiver = null
+            }
 
-        promise.resolve(true)
+            promise.resolve(true)
         } catch (t: Throwable) {
-        promise.reject("CLOSE_SCANNER_ERROR", t)
+            promise.resolve(false)
+            // promise.reject("CLOSE_SCANNER_ERROR", t)
         }
     }
 
