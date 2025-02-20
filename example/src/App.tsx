@@ -5,6 +5,7 @@ import {
   StyleSheet,
   type EmitterSubscription,
   NativeEventEmitter,
+  Platform,
 } from 'react-native';
 import Urovo, {
   closeScanner,
@@ -39,10 +40,16 @@ export default function App() {
   useEffect(() => {
     let eventListener: EmitterSubscription | undefined;
     if (isScannerOpened && Urovo) {
-      const eventEmitter = new NativeEventEmitter(Urovo);
+      const eventEmitter =
+        Platform.OS === 'android'
+          ? new NativeEventEmitter()
+          : new NativeEventEmitter(Urovo);
+
       eventListener = eventEmitter.addListener(
         UROVO_EVENTS.ON_SCAN,
         (scan: ScanResult) => {
+          console.log('scan', scan);
+
           setScanResult(scan);
         }
       );

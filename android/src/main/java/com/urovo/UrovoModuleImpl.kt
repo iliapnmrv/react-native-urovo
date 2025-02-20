@@ -6,6 +6,8 @@ import android.device.ScanManager
 import android.util.Log
 import android.content.IntentFilter
 import com.urovo.BeamBroadcastReceiver
+import java.util.logging.Logger
+
 
 class UrovoModuleImpl {
     private val scanner: ScanManager = ScanManager()
@@ -32,7 +34,7 @@ class UrovoModuleImpl {
 
             if (!isSwitchSuccessful) {
                 // switch output mode failure is unexpected but is possible
-                // throw error to react native side 
+                // throw error to react native side
                 promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to intent")
             }
         }
@@ -53,6 +55,7 @@ class UrovoModuleImpl {
             this.switchOutputMode(promise)
 
             if (receiver == null) {
+                // log.warning("creating")
                 receiver = BeamBroadcastReceiver(reactApplicationContext)
                 val intentFilter = IntentFilter("android.intent.ACTION_DECODE_DATA")
                 reactApplicationContext.registerReceiver(receiver, intentFilter)
@@ -83,9 +86,10 @@ class UrovoModuleImpl {
 
     fun addListener(eventName: String) {}
 
-    fun  removeListeners(count: Double) {}
+    fun removeListeners(count: Double) {}
 
     companion object {
         const val NAME = "Urovo"
+        var log: Logger = Logger.getLogger(UrovoModuleImpl::class.java.name  )
     }
 }
