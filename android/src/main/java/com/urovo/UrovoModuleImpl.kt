@@ -8,7 +8,6 @@ import android.content.IntentFilter
 import com.urovo.BeamBroadcastReceiver
 import java.util.logging.Logger
 
-
 class UrovoModuleImpl {
     private val scanner: ScanManager = ScanManager()
 
