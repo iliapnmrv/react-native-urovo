@@ -3,7 +3,6 @@ package com.urovo
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.Promise
 import android.device.ScanManager
-import android.util.Log
 import android.content.IntentFilter
 import com.urovo.BeamBroadcastReceiver
 import java.util.logging.Logger
@@ -54,9 +53,11 @@ class UrovoModuleImpl {
             // switch output mode to intent
             this.switchOutputMode(promise)
 
-            beamBroadcastReceiver = BeamBroadcastReceiver(reactApplicationContext)
-            val filter = IntentFilter(ACTION_DECODE)
-            reactApplicationContext.registerReceiver(beamBroadcastReceiver, filter)
+            if (beamBroadcastReceiver == null) {
+                beamBroadcastReceiver = BeamBroadcastReceiver(reactApplicationContext)
+                val filter = IntentFilter(ACTION_DECODE)
+                reactApplicationContext.registerReceiver(beamBroadcastReceiver, filter)
+            }
 
             promise.resolve(isOpenSuccessful)
         } catch (t: Throwable) {

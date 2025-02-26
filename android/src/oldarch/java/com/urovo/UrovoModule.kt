@@ -19,4 +19,10 @@ class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactConte
   fun closeScanner(promise: Promise) {
     implementation.close(promise, reactApplicationContext)
   }
+  
+  @ReactMethod
+  fun addListener(eventName: String) {}
+  
+  @ReactMethod
+  fun removeListeners(count: Double) {}
 }
