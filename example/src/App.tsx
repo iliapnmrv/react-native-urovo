@@ -62,7 +62,8 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text>Result: {scanResult?.value}</Text>
+      <Text style={styles.text}>Result: {scanResult?.value}</Text>
+      <Text style={styles.text}>Type: {scanResult?.type}</Text>
     </View>
   );
 }
@@ -72,5 +73,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  text: {
+    fontSize: 20,
+    textAlign: 'center',
   },
 });

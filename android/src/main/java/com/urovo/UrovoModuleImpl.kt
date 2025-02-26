@@ -7,11 +7,12 @@ import android.util.Log
 import android.content.IntentFilter
 import com.urovo.BeamBroadcastReceiver
 import java.util.logging.Logger
+import android.device.ScanManager.ACTION_DECODE
 
 class UrovoModuleImpl {
     private val scanner: ScanManager = ScanManager()
 
-    private var receiver: BeamBroadcastReceiver? = null
+    private var beamBroadcastReceiver: BeamBroadcastReceiver? = null
 
     fun openScanner(): Boolean {
         var isOpenSuccessful: Boolean
@@ -53,12 +54,9 @@ class UrovoModuleImpl {
             // switch output mode to intent
             this.switchOutputMode(promise)
 
-            if (receiver == null) {
-                // log.warning("creating")
-                receiver = BeamBroadcastReceiver(reactApplicationContext)
-                val intentFilter = IntentFilter("android.intent.ACTION_DECODE_DATA")
-                reactApplicationContext.registerReceiver(receiver, intentFilter)
-            }
+            beamBroadcastReceiver = BeamBroadcastReceiver(reactApplicationContext)
+            val filter = IntentFilter(ACTION_DECODE)
+            reactApplicationContext.registerReceiver(beamBroadcastReceiver, filter)
 
             promise.resolve(isOpenSuccessful)
         } catch (t: Throwable) {
@@ -71,10 +69,7 @@ class UrovoModuleImpl {
             scanner.stopDecode()
             scanner.closeScanner()
 
-            receiver?.let {
-                reactApplicationContext.unregisterReceiver(it)
-                receiver = null
-            }
+            reactApplicationContext.unregisterReceiver(beamBroadcastReceiver)
 
             promise.resolve(true)
         } catch (t: Throwable) {

@@ -10,13 +10,12 @@ React native bindings for urovo scanners
 
 This library tries to support as many RN versions as possible. For now the goal is to support the same versions as RN itself, you can learn more [here](https://github.com/reactwg/react-native-releases/blob/main/docs/support.md)
 
-
 | RN-urovo version | RN version | Supports New Architecture |
-|------------|------------------|---------------------------|
-| 1.0.0  | 0.77 | yes |
-| 1.0.0  | 0.76 | yes |
-| 1.0.0  | 0.75 | no  |
-| 1.0.0  | 0.74 | no  |
+| ---------------- | ---------- | ------------------------- |
+| 1.0.0            | 0.77       | yes                       |
+| 1.0.0            | 0.76       | yes                       |
+| 1.0.0            | 0.75       | no                        |
+| 1.0.0            | 0.74       | no                        |
 
 versions <= 0.73 are not supported
 
@@ -37,6 +36,7 @@ useEffect(() => {
   openScanner();
 
   return () => {
+    // make sure to close scanner to avoid unexpected behaviour
     closeScanner();
   };
 }, []);
@@ -49,7 +49,8 @@ import Urovo, { type ScanResult, UROVO_EVENTS } from 'react-native-urovo';
 
 useEffect(() => {
   let eventListener: EmitterSubscription | undefined;
-  if (Urovo) { // used only for type safety
+  if (Urovo) {
+    // used only for type safety
     const eventEmitter = new NativeEventEmitter(Urovo);
     eventListener = eventEmitter.addListener(
       UROVO_EVENTS.ON_SCAN,

@@ -5,7 +5,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 
-class UrovoModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactApplicationContext) {
   private var implementation: UrovoModuleImpl = UrovoModuleImpl()
 
   override fun getName(): String = UrovoModuleImpl.NAME
