@@ -13,7 +13,7 @@ class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactC
   }
   
   override fun closeScanner(promise: Promise) {
-    implementation.open(promise, reactApplicationContext)
+    implementation.close(promise, reactApplicationContext)
   }
 
   override fun addListener(eventName: String) {}

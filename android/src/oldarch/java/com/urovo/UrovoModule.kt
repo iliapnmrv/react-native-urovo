@@ -17,6 +17,6 @@ class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactConte
   
   @ReactMethod
   fun closeScanner(promise: Promise) {
-    implementation.open(promise, reactApplicationContext)
+    implementation.close(promise, reactApplicationContext)
   }
 }
