@@ -1,6 +1,7 @@
 package com.urovo
 
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReactApplicationContext
 
 class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactContext) {
@@ -15,8 +16,24 @@ class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactC
   override fun closeScanner(promise: Promise) {
     implementation.close(promise, reactApplicationContext)
   }
+  
+  override fun enableAllSymbologies(enable: Boolean, promise: Promise) {
+    implementation.enableAllSymbologies(enable, promise)
+  }
+
+  override fun enableSymbologies(symbologies: ReadableArray, enable: Boolean, promise: Promise){
+    implementation.enableSymbologies(symbologies, enable, promise)
+  }
+  
+  override fun getParameters(ids: ReadableArray, promise: Promise){
+    implementation.getParameters(ids, promise)
+  }
 
   override fun addListener(eventName: String) {}
   
   override fun removeListeners(count: Double) {}
+  
+  override fun getTypedExportedConstants(): Map<String, Any> {
+    return implementation.getConstants()
+  }
 }

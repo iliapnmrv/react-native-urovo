@@ -21,6 +21,16 @@ class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactConte
   }
   
   @ReactMethod
+  fun enableAllSymbologies(enable: Boolean) {
+    implementation.enableAllSymbologies(enable)
+  }
+
+  @ReactMethod
+  fun getConstants(): MutableMap<String, Any> {
+    implementation.getConstants()
+  }
+  
+  @ReactMethod
   fun addListener(eventName: String) {}
   
   @ReactMethod

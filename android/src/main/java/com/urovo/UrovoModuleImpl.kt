@@ -1,12 +1,17 @@
 package com.urovo
 
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.Promise
-import android.device.ScanManager
 import android.content.IntentFilter
+import android.device.ScanManager
+import android.device.ScanManager.ACTION_DECODE
+import android.device.scanner.configuration.Symbology
+import android.device.scanner.configuration.PropertyID
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.Arguments
 import com.urovo.BeamBroadcastReceiver
 import java.util.logging.Logger
-import android.device.ScanManager.ACTION_DECODE
 
 class UrovoModuleImpl {
     private val scanner: ScanManager = ScanManager()
@@ -65,6 +70,56 @@ class UrovoModuleImpl {
         }
     }
 
+    fun getParameters(ids: ReadableArray, promise: Promise) {
+        try {
+println("123123")
+
+            val propertyIds = IntArray(ids.size())
+            for (i in 0 until ids.size()) {
+                propertyIds[i] = ids.getInt(i)
+            }
+
+            val values = scanner.getParameterInts(propertyIds)
+
+            val resultMap = Arguments.createMap()
+    
+            for (index in propertyIds.indices) {
+                val propertyId = propertyIds[index]
+                val propertyValue = values[index]
+
+                resultMap.putInt(propertyId.toString(), propertyValue)
+            }
+    
+            promise.resolve(resultMap)
+        } catch (e: Throwable) {
+            promise.reject("GET_PARAMETERS_ERROR", e)
+        }
+    }
+    
+    fun setParameters(params: ReadableMap, promise: Promise) {
+        try {
+            val propertyIds = mutableListOf<Int>()
+            val propertyValues = mutableListOf<Int>()
+    
+            val iterator = params.keySetIterator()
+            while (iterator.hasNextKey()) {
+                val key = iterator.nextKey()
+ 
+                val propertyId: Int = key.toInt()
+                val value = params.getInt(key)
+    
+                propertyIds.add(propertyId)
+                propertyValues.add(value)
+            }
+    
+            scanner.setParameterInts(propertyIds.toIntArray(), propertyValues.toIntArray())
+    
+            promise.resolve(true)
+        } catch (t: Throwable) {
+            promise.reject("SET_PARAMS_ERROR", t)
+        }
+    }
+
     fun close(promise: Promise, reactApplicationContext: ReactApplicationContext) {
         try {
             scanner.stopDecode()
@@ -79,12 +134,44 @@ class UrovoModuleImpl {
         }
     }
 
+    fun enableAllSymbologies(enable: Boolean, promise: Promise){
+        try {
+            scanner.enableAllSymbologies(enable)
+            promise.resolve(true)
+        } catch (e: Throwable) {
+            promise.reject("enableAllSymbologies error", e)
+        }
+
+    }
+
+    fun enableSymbologies(symbologies: ReadableArray, enable: Boolean = true, promise: Promise) {
+        try {
+            for (i in 0 until symbologies.size()) {
+                val barcodeType: Symbology = Symbology.valueOf(symbologies.getString(i) ?: "")
+
+                val isSupported = scanner.isSymbologySupported(barcodeType)
+
+                if(isSupported){
+                    scanner.enableSymbology(barcodeType, enable)
+                }
+            }
+        } catch (e: Throwable) {
+            promise.reject("enableSymbologies error", e)
+        }
+    }
+    
+
     fun addListener(eventName: String) {}
 
     fun removeListeners(count: Double) {}
 
+    fun getConstants(): MutableMap<String, Any> {   
+        return hashMapOf(
+            "PropertyId" to "123"
+        )
+    }
     companion object {
         const val NAME = "Urovo"
-        var log: Logger = Logger.getLogger(UrovoModuleImpl::class.java.name  )
+        var LOG: Logger = Logger.getLogger(UrovoModuleImpl::class.java.name)
     }
 }
