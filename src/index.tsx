@@ -1,4 +1,5 @@
-import NativeModule from './NativeUrovo';
+import NativeUrovo from './NativeUrovo';
+import type { PropertyID } from './types/PropertyId';
 import type { Symbology } from './types/Symbology';
 
 export type ScanResult = {
@@ -16,33 +17,46 @@ export enum UROVO_EVENTS {
  * @returns A promise that resolves to `true` if the scanner was successfully opened| otherwise `false`.
  */
 export function openScanner() {
-  return NativeModule?.openScanner();
+  return NativeUrovo?.openScanner();
 }
 
 export function closeScanner() {
-  return NativeModule?.closeScanner();
+  return NativeUrovo?.closeScanner();
 }
 
 export function enableAllSymbologies(enable: boolean = true) {
-  return NativeModule?.enableAllSymbologies(enable);
+  return NativeUrovo?.enableAllSymbologies(enable);
 }
 
-export function getParameters(ids: number[]) {
-  return NativeModule?.getParameters(ids);
+export function getParameters(ids: PropertyID[]) {
+  return NativeUrovo?.getParameters(ids);
+}
+
+export function resetScannerParameters() {
+  return NativeUrovo?.resetScannerParameters();
+}
+
+export type PropertyIdValue = number | string;
+
+export type SetParameterArg = Partial<Record<PropertyID, PropertyIdValue>>;
+// export type SetParameterArg = number;
+
+export function setParameter(params: SetParameterArg) {
+  return NativeUrovo?.setParameter(params);
 }
 
 export function enableSymbologies(
   symbologies: Symbology[],
   enable: boolean = true
 ) {
-  return NativeModule?.enableSymbologies(symbologies, enable);
+  return NativeUrovo?.enableSymbologies(symbologies, enable);
 }
 
-export const { PropertyId } = NativeModule?.getConstants() ?? {};
+export const {} = NativeUrovo?.getConstants() ?? {};
 
-const Urovo = NativeModule;
+const Urovo = NativeUrovo;
 
-export * from './types/PropertyId';
-export * from './types/Symbology';
+export * from './types';
+export * from './hooks';
 
 export default Urovo;

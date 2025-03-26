@@ -1,4 +1,4 @@
-package com.urovo
+package com.urovo.scan.broadcast
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -36,3 +36,4 @@ class BeamBroadcastReceiver(private val reactContext: ReactContext) : BroadcastR
             .emit(eventName, params)
     }
 }
+    

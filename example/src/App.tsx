@@ -1,143 +1,72 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { Alert, Button, ScrollView, StyleSheet, Text } from 'react-native';
 import {
-  Button,
-  NativeEventEmitter,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  type EmitterSubscription,
-} from 'react-native';
-import Urovo, {
-  closeScanner,
-  enableAllSymbologies,
-  enableSymbologies,
-  getParameters,
-  openScanner,
-  PROPERTY_ID,
-  PropertyId,
-  Symbology,
-  UROVO_EVENTS,
+  PropertyID,
+  usePropertyID,
+  useUrovo,
   type ScanResult,
 } from 'react-native-urovo';
-
-// const useSymbologies = () => {
-//   const enableSymbology = async (
-//     symbologies: Symbology[] | boolean | undefined
-//     enable: boolean
-//   ) => {
-//     try {
-//       if (
-//         typeof symbologies === 'boolean' ||
-//         typeof symbologies === 'undefined'
-//       ) {
-//         await enableAllSymbologies(symbologies);
-//       } else {
-//         await enableSymbologies(symbologies);
-//       }
-//     } catch (error) {
-//       console.error('enableSymbologies', error);
-//     }
-//   };
-
-//   return { enableSymbology };
-// };
 
 export default function App() {
   const [scanResult, setScanResult] = useState<ScanResult>();
 
-  const [isScannerOpened, setIsScannerOpened] = useState<boolean>(false);
-  const [isQRSymbologyEnabled, setIsQRSymbologyEnabled] =
-    useState<boolean>(true);
+  const [isEnabled, setIsEnabled] = usePropertyID(PropertyID.QRCODE_ENABLE);
+
+  const [beepValue, setBeepValue] = usePropertyID(
+    PropertyID.SEND_GOOD_READ_BEEP_ENABLE
+  );
 
   const toggleQRSymbology = async () => {
     try {
-      setIsQRSymbologyEnabled(!isQRSymbologyEnabled);
-      await enableSymbologies([Symbology.QRCODE], isQRSymbologyEnabled);
+      const newValue = Number(!isEnabled);
+      setIsEnabled(newValue);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const getParams = async () => {
+  const changeBeepValue = async () => {
     try {
-      const params = await getParameters([
-        PROPERTY_ID.AUSTRALIAN_POST_ENABLE,
-        PROPERTY_ID.QRCODE_ENABLE,
-      ]);
-
-      console.log(params);
+      // https://en.urovo.com/developer/android/device/scanner/configuration/PropertyID.html#SEND_GOOD_READ_BEEP_ENABLE
+      Alert.alert(
+        'Choose beep value',
+        undefined,
+        [
+          {
+            text: 'None (0)',
+            onPress: () => setBeepValue(0),
+          },
+          {
+            text: 'Short (1)',
+            onPress: () => setBeepValue(1),
+          },
+          {
+            text: 'Sharp (2)',
+            onPress: () => setBeepValue(2),
+          },
+        ],
+        { cancelable: true }
+      );
     } catch (error) {
       console.error(error);
     }
   };
 
-  console.log('PropertyId', PropertyId);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const open = async () => {
-      const isOpened = await openScanner();
-
-      await enableAllSymbologies(true);
-
-      if (isMounted) {
-        setIsScannerOpened(!!isOpened);
-      }
-    };
-
-    open();
-
-    return () => {
-      isMounted = false;
-      closeScanner();
-    };
-  }, []);
-
-  useEffect(() => {
-    let eventListener: EmitterSubscription | undefined;
-
-    if (isScannerOpened && Urovo) {
-      const eventEmitter =
-        Platform.OS === 'android'
-          ? new NativeEventEmitter()
-          : new NativeEventEmitter(Urovo);
-
-      eventListener = eventEmitter.addListener(
-        UROVO_EVENTS.ON_SCAN,
-        (scan: ScanResult) => {
-          console.log(scan);
-          setScanResult(scan);
-        }
-      );
-    }
-
-    return () => {
-      eventListener?.remove();
-    };
-  }, [isScannerOpened]);
-
-  // const {} = useUrovo({
-  //   onScan: setScanResult,
-  //   onOpen: () => {
-  //     // only scan AZTEC codes
-  //     // enableSymbology(true);
-  //     // enableSymbology([Symbology.AZTEC]);
-  //   },
-  // });
+  const {} = useUrovo({
+    onScan: setScanResult,
+  });
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.text}>Result: {scanResult?.value}</Text>
       <Text style={styles.text}>Type: {scanResult?.type}</Text>
       <Text style={styles.text}>Symbology: {scanResult?.symbology}</Text>
-      <Button title={'Toggle QR symbology'} onPress={toggleQRSymbology} />
-      <Button title={'Get params'} onPress={getParams} />
-      <Text style={styles.text}>
-        QR Symbology: {isQRSymbologyEnabled.toString()}
-      </Text>
-    </View>
+      <Button title={'Toggle QR'} onPress={toggleQRSymbology} />
+      <Text style={styles.text}>QR enabled: {isEnabled?.toString()}</Text>
+
+      <Button title={'Change beep value'} onPress={changeBeepValue} />
+      <Text style={styles.text}>Beep value: {beepValue}</Text>
+    </ScrollView>
   );
 }
 
@@ -146,6 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 20,
   },
   text: {
     fontSize: 20,

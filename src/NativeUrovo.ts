@@ -1,6 +1,10 @@
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
-import type { Symbology } from 'react-native-urovo';
+import type {
+  PropertyID,
+  PropertyIdValue,
+  Symbology,
+} from 'react-native-urovo';
 
 export interface Spec extends TurboModule {
   openScanner: () => Promise<boolean>;
@@ -11,7 +15,11 @@ export interface Spec extends TurboModule {
     enable: boolean
   ) => Promise<Symbology[]>;
 
-  getParameters: (ids: number[]) => Promise<void>;
+  getParameters: (
+    ids: number[]
+  ) => Promise<Record<PropertyID, PropertyIdValue>>;
+  setParameter: (param: Object) => Promise<boolean>;
+  resetScannerParameters: () => Promise<boolean>;
 
   addListener(eventName: string): void;
   removeListeners(count: number): void;

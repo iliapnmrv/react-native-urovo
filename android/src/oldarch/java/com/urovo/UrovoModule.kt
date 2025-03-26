@@ -1,9 +1,6 @@
 package com.urovo
 
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.*
 
 class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactApplicationContext) {
   private var implementation: UrovoModuleImpl = UrovoModuleImpl()
@@ -23,6 +20,26 @@ class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactConte
   @ReactMethod
   fun enableAllSymbologies(enable: Boolean) {
     implementation.enableAllSymbologies(enable)
+  }
+  
+  @ReactMethod
+  fun enableSymbologies(symbologies: ReadableArray, enable: Boolean, promise: Promise){
+    implementation.enableSymbologies(symbologies, enable, promise)
+  }
+
+  @ReactMethod
+  fun getParameters(ids: ReadableArray, promise: Promise){
+    implementation.getParameters(ids, promise)
+  }
+  
+  @ReactMethod
+  fun setParameter(parameter: ReadableMap, promise: Promise){
+    implementation.setParameter(parameter, promise)
+  }
+  
+  @ReactMethod
+  fun resetScannerParameters(promise: Promise){
+    implementation.resetScannerParameters(promise)
   }
 
   @ReactMethod

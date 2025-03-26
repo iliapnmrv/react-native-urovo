@@ -1,8 +1,6 @@
 package com.urovo
 
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.*
 
 class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactContext) {
   private var implementation: UrovoModuleImpl = UrovoModuleImpl()
@@ -29,10 +27,17 @@ class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactC
     implementation.getParameters(ids, promise)
   }
 
+  override fun setParameter(parameter: ReadableMap, promise: Promise){
+    implementation.setParameter(parameter, promise)
+  }
+
+  override fun resetScannerParameters(promise: Promise){
+    implementation.resetScannerParameters(promise)
+  }
+
   override fun addListener(eventName: String) {}
-  
   override fun removeListeners(count: Double) {}
-  
+
   override fun getTypedExportedConstants(): Map<String, Any> {
     return implementation.getConstants()
   }

@@ -1,4 +1,5 @@
-export enum PROPERTY_ID {
+// https://en.urovo.com/developer/constant-values.html#android.device.scanner.configuration.PropertyID
+export enum PropertyID {
   AUSTRALIAN_POST_ENABLE = 2327,
   AZTEC_ENABLE = 2840,
   AZTEC_INVERSE = 2841,
