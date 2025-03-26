@@ -4,7 +4,7 @@ React native bindings for urovo scanners
 
 - Works on both old `Legacy Native Modules` and new `Turbo Native Modules` architectures
 - Uses latest urovo [SDK](https://github.com/urovosamples/SDK_ReleaseforAndroid)
-- Supports latest React Native version `v0.77+`
+- Supports latest React Native version `v0.78+`
 
 ## Compatibility
 
@@ -30,9 +30,9 @@ npm install react-native-urovo
 
 There are 2 options to get started with
 
-### 1. Using `useUrovo` Hook
+### 1. `useUrovo` Hook
 
-This hook initializes the urovo module for you. It handles clean up and created eventListener. You only have to pass `onScan` method
+The useUrovo hook initializes the Urovo module for you by handling setup and cleanup, including the creation of an event listener. You only need to pass an `onScan` callback that handles the scan result:
 
 ```ts
 import { useUrovo, type ScanResult } from 'react-native-urovo';
@@ -42,9 +42,9 @@ const [scanResult, setScanResult] = useState<ScanResult>();
 useUrovo({ onScan: setScanResult });
 ```
 
-### 2. Using `openScanner` and `closeScanner` methods
+### 2. `openScanner` and `closeScanner` methods
 
-First, you have to open/init the scanner
+First, open or initialize the scanner:
 
 ```ts
 import { closeScanner, openScanner } from 'react-native-urovo';
@@ -53,13 +53,13 @@ useEffect(() => {
   openScanner();
 
   return () => {
-    // make sure to close scanner to avoid unexpected behaviour
+    // Be sure to close scanner to avoid unexpected behaviour
     closeScanner();
   };
 }, []);
 ```
 
-Then, add listener on module, `UROVO_EVENTS.ON_SCAN` event type
+Next, add a listener for the `UROVO_EVENTS.ON_SCAN` event to handle scan results:
 
 ```ts
 import Urovo, { type ScanResult, UROVO_EVENTS } from 'react-native-urovo';
@@ -85,17 +85,19 @@ useEffect(() => {
 
 ### openScanner
 
-Opens scanner instance
+Opens the scanner instance
 
 ### closeScanner
 
-Closes scanner
+Closes the scanner
 
 ### getParameters
 
-Returns key-value pair of requested parameters
+Retrieves a key-value pair object for the requested parameters
 
-> It is low level API that comes from Urovo itself, for most cases I recommend using the [usePropertyID](#usepropertyid) hook
+> This is a low-level API provided by Urovo. In most cases, it is recommended to use the [usePropertyID](#usepropertyid) hook
+
+#### Example
 
 ```ts
 import { PropertyID } from 'react-native-urovo';
@@ -105,7 +107,7 @@ const parameters = await getParameters([
   PropertyID.SEND_GOOD_READ_BEEP_ENABLE,
 ]);
 
-const isQREnabled = parameters?.[PropertyID.QRCODE_ENABLE];
+const isQREnabled = parameters?.[PropertyID.QRCODE_ENABLE]; // 0 - disabled or 1 - enabled
 ```
 
 Response
@@ -113,15 +115,15 @@ Response
 ```json
 {
   "2832": 1, // or 0
-  "6": 0 // this parameter supports values 0 : None, 1 : Short, 2 : Sharp
+  "6": 0 // this parameter supports: 0 - None, 1 - Short, 2 - Sharp
 }
 ```
 
 ### setParameter
 
-Sets parameter value.
+Sets the value for a specified parameter
 
-> It is low level API that comes from Urovo itself, for most cases I recommend using the [usePropertyID](#usepropertyid) hook
+> This is a low-level API provided by Urovo. In most cases, it is recommended to use the [usePropertyID](#usepropertyid) hook
 
 ```ts
 import { setParameter, PropertyID } from 'react-native-urovo';
@@ -131,7 +133,7 @@ await setParameter({ [PropertyID.QRCODE_ENABLE]: 1 });
 
 ### resetScannerParameters
 
-Resets to factory default settings for all barcode symbology types.
+Resets all barcode settings to their factory defaults.
 
 ```ts
 import { resetScannerParameters } from 'react-native-urovo';
@@ -143,15 +145,15 @@ await resetScannerParameters();
 
 Urovo scanners have a set of parameters that you can set for better UX. A complete list of parameters you can find [in the docs](https://en.urovo.com/developer/constant-values.html#android.device.scanner.configuration.PropertyID.AUSTRALIAN_POST_ENABLE)
 
-Unfortunately Urovo does not come with a great descriptions, so you mostly have to figure in out yourself 🤷‍♂️
+Unfortunately Urovo does not come with a great descriptions, so you mostly have to figure it out yourself 🤷‍♂️
 
-Also Urovo scanners come with built-in scanner app and settings. (You can find them in Settings -> ). You can test any parameter there and them find it in the docs.
+Also Urovo scanners come with built-in scanner app and settings. (You can find them in Settings -> Enterprise featured settings -> Scanner settings). You can test any parameter there and them find it in the docs.
 
 ## hooks
 
 ### usePropertyID
 
-Sets and reads PropertyID
+The `usePropertyID` hook allows you to read and set parameter values (PropertyID) easily
 
 ```ts
 import { PropertyID, usePropertyID } from 'react-native-urovo';
@@ -161,11 +163,15 @@ const [isQREnabled, setIsQREnabled] = usePropertyID(PropertyID.QRCODE_ENABLE);
 
 ## Types
 
-| key       | value     | description                                                                                                                                                       |
-| --------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| value     | string    | `intent.getStringExtra (BARCODE_STRING_TAG)`                                                                                                                      |
-| symbology | Symbology | [Symbology key](#symbology)                                                                                                                                       |
-| type      | number    | Symbology value. You can learn more [here](https://en.urovo.com/developer/constant-values.html#android.device.scanner.configuration.Constants.Symbology.MATRIX25) |
+### ScanResult
+
+| key       | value     | description                                                                                                                                                                                           |
+| --------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| value     | string    | The barcode value obtained using `intent.getStringExtra (BARCODE_STRING_TAG)`                                                                                                                         |
+| symbology | Symbology | The barcode type. See the [Symbology](#symbology) section for more details                                                                                                                            |
+| type      | number    | A numeric representation of the barcode type. More details can be found [here](https://en.urovo.com/developer/constant-values.html#android.device.scanner.configuration.Constants.Symbology.MATRIX25) |
+
+Example
 
 ```json
 {
@@ -177,7 +183,7 @@ const [isQREnabled, setIsQREnabled] = usePropertyID(PropertyID.QRCODE_ENABLE);
 
 ### Symbology
 
-Symbology is an Enum that contains all barcode types that are supported by current version on urovo scanners
+The Symbology enum contains all supported barcode types for the current Urovo scanner version
 
 ```ts
 enum Symbology {
@@ -186,11 +192,11 @@ enum Symbology {
 }
 ```
 
-You can learn more about symbology [on official website](https://en.urovo.com/developer/android/device/scanner/configuration/Symbology.html)
+For additional details on supported symbologies, please refer to the [official Urovo documentation](https://en.urovo.com/developer/android/device/scanner/configuration/Symbology.html)
 
 ## Contributing
 
-If you have any feature requests, feel free ask for it
+If you have any feature requests or suggestions, feel free to open an issue or submit a pull request.
 
 ## License
 
