@@ -52,7 +52,7 @@ export function enableSymbologies(
   return NativeUrovo?.enableSymbologies(symbologies, enable);
 }
 
-export const {} = NativeUrovo?.getConstants() ?? {};
+// export const {} = NativeUrovo?.getConstants() ?? {};
 
 const Urovo = NativeUrovo;
 
