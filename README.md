@@ -83,6 +83,8 @@ useEffect(() => {
 
 ## Methods
 
+I recommend wrapping every method in `trycatch`. Learn more in [Troubleshooting](#troubleshooting)
+
 ### openScanner
 
 Opens the scanner instance
@@ -193,6 +195,31 @@ enum Symbology {
 ```
 
 For additional details on supported symbologies, please refer to the [official Urovo documentation](https://en.urovo.com/developer/android/device/scanner/configuration/Symbology.html)
+
+## Troubleshooting
+
+### Stub (Android only)
+
+`Stub` error means that device does not support Urovo methods. If you're using Sentry, make sure to wrap every method in `trycatch`.
+
+Example
+
+```ts
+// before
+await setParameter({ [PropertyID.QRCODE_ENABLE]: 1 });
+
+// after
+try {
+  await setParameter({ [PropertyID.QRCODE_ENABLE]: 1 });
+} catch (e) {
+  // you'll get stub error if current device does not support Urovo methods
+  console.error(e);
+}
+```
+
+> Should you just ignore this error?
+
+> In most cases yes, you should. But sometimes you might want to handle in someho. For example show notification to user
 
 ## Contributing
 

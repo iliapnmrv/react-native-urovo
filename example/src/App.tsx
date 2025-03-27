@@ -19,7 +19,7 @@ export default function App() {
   const toggleQRSymbology = async () => {
     try {
       const newValue = Number(!isEnabled);
-      setIsEnabled(newValue);
+      await setIsEnabled(newValue);
     } catch (error) {
       console.error(error);
     }

@@ -50,33 +50,23 @@ class UrovoModuleImpl {
     }
 
     fun getParameters(ids: ReadableArray, promise: Promise) {
-        scanner?.let{    
-            parameterManager.getParameters(ids, promise)
-        }
+        parameterManager.getParameters(ids, promise)
     }
 
     fun setParameter(parameter: ReadableMap, promise: Promise) {
-        scanner?.let{
-            parameterManager.setParameter(parameter, promise)
-        }
+        parameterManager.setParameter(parameter, promise)
     }
 
     fun resetScannerParameters(promise: Promise) {
-        scanner?.let{
-            parameterManager.resetScannerParameters(promise)
-        }
+        parameterManager.resetScannerParameters(promise)
     }
 
     fun enableAllSymbologies(enable: Boolean, promise: Promise) {
-        scanner?.let{
-            symbologyManager.enableAllSymbologies(enable, promise)
-        }
+        symbologyManager.enableAllSymbologies(enable, promise)
     }
 
     fun enableSymbologies(symbologies: ReadableArray, enable: Boolean, promise: Promise) {
-        scanner?.let{
-            symbologyManager.enableSymbologies(symbologies, enable, promise)
-        }
+        symbologyManager.enableSymbologies(symbologies, enable, promise)
     }
 
     // fun getConstants(): MutableMap<String, Any> {
