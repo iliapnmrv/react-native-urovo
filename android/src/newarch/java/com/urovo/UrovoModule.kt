@@ -38,7 +38,7 @@ class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactC
   override fun addListener(eventName: String) {}
   override fun removeListeners(count: Double) {}
 
-  override fun getTypedExportedConstants(): Map<String, Any> {
-    return implementation.getConstants()
-  }
+  // override fun getTypedExportedConstants(): Map<String, Any> {
+  //   return implementation.getConstants()
+  // }
 }

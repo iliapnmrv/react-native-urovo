@@ -24,9 +24,7 @@ export interface Spec extends TurboModule {
   addListener(eventName: string): void;
   removeListeners(count: number): void;
 
-  getConstants(): {
-    PropertyId: number[];
-  };
+  readonly getConstants: () => {};
 }
 
 export default TurboModuleRegistry.get<Spec>('Urovo');

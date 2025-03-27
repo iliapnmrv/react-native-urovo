@@ -69,7 +69,7 @@ class UrovoModuleImpl {
         symbologyManager.enableSymbologies(symbologies, enable, promise)
     }
 
-    fun getConstants(): MutableMap<String, Any> {
-        return hashMapOf("PropertyId" to "123")
-    }
+    // fun getConstants(): MutableMap<String, Any> {
+    //     return hashMapOf("PropertyId" to "123")
+    // }
 }

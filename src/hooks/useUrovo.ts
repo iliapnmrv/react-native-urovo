@@ -26,8 +26,6 @@ export const useUrovo = ({ onScan }: UseUrovoProps): UseUrovoResponse => {
   useEffect(() => {
     let isMounted = true;
 
-    console.log('opening');
-
     const open = async () => {
       const isOpened = await openScanner();
 

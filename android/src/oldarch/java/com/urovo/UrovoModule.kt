@@ -18,8 +18,8 @@ class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactConte
   }
   
   @ReactMethod
-  fun enableAllSymbologies(enable: Boolean) {
-    implementation.enableAllSymbologies(enable)
+  fun enableAllSymbologies(enable: Boolean, promise: Promise) {
+    implementation.enableAllSymbologies(enable, promise)
   }
   
   @ReactMethod
@@ -41,15 +41,15 @@ class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactConte
   fun resetScannerParameters(promise: Promise){
     implementation.resetScannerParameters(promise)
   }
-
-  @ReactMethod
-  fun getConstants(): MutableMap<String, Any> {
-    implementation.getConstants()
-  }
   
   @ReactMethod
   fun addListener(eventName: String) {}
   
   @ReactMethod
   fun removeListeners(count: Double) {}
+
+  // @ReactMethod
+  // fun getConstants(): MutableMap<String, Any> {
+  //   implementation.getConstants()
+  // }
 }
