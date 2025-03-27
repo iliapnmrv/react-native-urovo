@@ -89,6 +89,8 @@ I recommend wrapping every method in `trycatch`. Learn more in [Troubleshooting]
 
 Opens the scanner instance
 
+Returns `isOpenedSuccessfully: boolean`
+
 ### closeScanner
 
 Closes the scanner
