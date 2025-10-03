@@ -30,4 +30,4 @@ export interface Spec extends TurboModule {
   readonly getConstants: () => {};
 }
 
-export default TurboModuleRegistry.get<Spec>('Urovo');
+export default TurboModuleRegistry.get<Spec>('RNUrovo');

@@ -1,6 +1,6 @@
 {
   "name": "react-native-urovo",
-  "version": "1.2.0-beta.0",
+  "version": "1.2.0-beta.1",
   "description": "React native bindings for urovo scanners",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -186,7 +186,7 @@
     ]
   },
   "codegenConfig": {
-    "name": "UrovoSpec",
+    "name": "RNUrovoSpec",
     "type": "modules",
     "jsSrcsDir": "src",
     "outputDir": {
