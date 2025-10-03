@@ -5,7 +5,7 @@ import type {
   PropertyID,
   PropertyIdValue,
   Symbology,
-} from 'react-native-urovo';
+} from './types';
 
 export interface Spec extends TurboModule {
   openScanner: (mode?: OutputMode) => Promise<boolean>;

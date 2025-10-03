@@ -1,3 +1,5 @@
+export type PropertyIdValue = number | string;
+
 // https://en.urovo.com/developer/constant-values.html#android.device.scanner.configuration.PropertyID
 export enum PropertyID {
   AUSTRALIAN_POST_ENABLE = 2327,

@@ -1,5 +1,10 @@
 import NativeUrovo from './NativeUrovo';
-import { OutputMode, type PropertyID, type Symbology } from './types';
+import {
+  OutputMode,
+  type PropertyID,
+  type PropertyIdValue,
+  type Symbology,
+} from './types';
 
 export type ScanResult = {
   value: string;
@@ -42,8 +47,6 @@ export function getParameters(ids: PropertyID[]) {
 export function resetScannerParameters() {
   return NativeUrovo?.resetScannerParameters();
 }
-
-export type PropertyIdValue = number | string;
 
 export type SetParameterArg = Partial<Record<PropertyID, PropertyIdValue>>;
 // export type SetParameterArg = number;
