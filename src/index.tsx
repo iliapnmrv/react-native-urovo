@@ -1,6 +1,5 @@
 import NativeUrovo from './NativeUrovo';
-import type { PropertyID } from './types/PropertyId';
-import type { Symbology } from './types/Symbology';
+import { OutputMode, type PropertyID, type Symbology } from './types';
 
 export type ScanResult = {
   value: string;
@@ -16,8 +15,16 @@ export enum UROVO_EVENTS {
  * Opens the Urovo scanner.
  * @returns A promise that resolves to `true` if the scanner was successfully opened| otherwise `false`.
  */
-export function openScanner() {
-  return NativeUrovo?.openScanner();
+export function openScanner(mode: OutputMode = OutputMode.INTENT) {
+  return NativeUrovo?.openScanner(mode);
+}
+
+export function switchOutputMode(mode: OutputMode) {
+  return NativeUrovo?.switchOutputMode(mode);
+}
+
+export function getOutputMode() {
+  return NativeUrovo?.getOutputMode();
 }
 
 export function closeScanner() {

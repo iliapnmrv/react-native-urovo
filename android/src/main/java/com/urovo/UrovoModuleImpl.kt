@@ -23,15 +23,14 @@ class UrovoModuleImpl {
         val LOG: Logger = Logger.getLogger(UrovoModuleImpl::class.java.name)
     }
 
-    fun open(promise: Promise, reactCtx: ReactApplicationContext) {
+    fun open(mode: Int, promise: Promise, reactCtx: ReactApplicationContext) {
         try {
             val opened = scannerController.openScanner()
             if (!opened) {
                 promise.resolve(false)
                 return
             }
-            scannerController.switchOutputMode(promise)
-            scannerController.registerReceiverIfNeeded(reactCtx)
+            scannerController.switchOutputMode(mode, promise, reactCtx)
 
             promise.resolve(true)
         } catch (t: Throwable) {
@@ -67,6 +66,14 @@ class UrovoModuleImpl {
 
     fun enableSymbologies(symbologies: ReadableArray, enable: Boolean, promise: Promise) {
         symbologyManager.enableSymbologies(symbologies, enable, promise)
+    }
+    
+    fun switchOutputMode(mode: Int, promise: Promise, reactCtx: ReactApplicationContext) {
+        scannerController.switchOutputMode(mode, promise, reactCtx)
+    }
+    
+    fun getOutputMode(promise: Promise) {
+        scannerController.getOutputMode(promise)
     }
 
     // fun getConstants(): MutableMap<String, Any> {

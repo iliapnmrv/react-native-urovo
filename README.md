@@ -4,7 +4,7 @@ React native bindings for urovo scanners
 
 - Works on both old `Legacy Native Modules` and new `Turbo Native Modules` architectures
 - Uses latest urovo [SDK](https://github.com/urovosamples/SDK_ReleaseforAndroid)
-- Supports latest React Native version `v0.78+`
+- Supports latest React Native version `v0.81+`
 
 ## Compatibility
 
@@ -12,9 +12,7 @@ This library tries to support as many RN versions as possible. For now the goal 
 
 | RN-urovo version | RN version | Supports New Architecture |
 | ---------------- | ---------- | ------------------------- |
-| 1.0.0            | 0.78       | yes                       |
-| 1.0.0            | 0.77       | yes                       |
-| 1.0.0            | 0.76       | yes                       |
+| 1.0.0            | 0.76+      | yes                       |
 | 1.0.0            | 0.75       | no                        |
 | 1.0.0            | 0.74       | no                        |
 
@@ -85,15 +83,57 @@ useEffect(() => {
 
 I recommend wrapping every method in `trycatch`. Learn more in [Troubleshooting](#troubleshooting)
 
-### openScanner
+### openScanner(mode?)
 
-Opens the scanner instance
+Opens the Urovo scanner instance.
 
-Returns `isOpenedSuccessfully: boolean`
+**Parameters**:
+
+mode?: OutputMode — if omitted, `OutputMode.Intent` mode is used.
+
+**Returns**:
+
+Promise<boolean> — true if the scanner was opened successfully.
+
+```ts
+// these  calls are equal
+await openScanner();
+await openScanner(OutputMode.Intent);
+
+const ok = await openScanner(OutputMode.TextBox);
+```
 
 ### closeScanner
 
 Closes the scanner
+
+### getOutputMode
+
+Gets the current scanner output mode.
+
+**Returns**: Promise<OutputMode | undefined>
+
+Example
+
+```ts
+const mode = await getOutputMode();
+```
+
+### switchOutputMode(mode)
+
+Switches the scanner output mode at runtime.
+
+**Parameters**:
+
+mode: OutputMode
+
+**Returns**:
+
+Promise — true if the mode is applied.
+
+```ts
+await switchOutputMode(OutputMode.Intent);
+```
 
 ### getParameters
 
@@ -165,6 +205,16 @@ import { PropertyID, usePropertyID } from 'react-native-urovo';
 const [isQREnabled, setIsQREnabled] = usePropertyID(PropertyID.QRCODE_ENABLE);
 ```
 
+### useOutputMode
+
+Hook to read and change `OutputMode`
+
+```ts
+import { useOutputMode } from 'react-native-urovo';
+
+const [outputMode, setMode] = useOutputMode();
+```
+
 ## Types
 
 ### ScanResult
@@ -174,8 +224,6 @@ const [isQREnabled, setIsQREnabled] = usePropertyID(PropertyID.QRCODE_ENABLE);
 | value     | string    | The barcode value obtained using `intent.getStringExtra (BARCODE_STRING_TAG)`                                                                                                                         |
 | symbology | Symbology | The barcode type. See the [Symbology](#symbology) section for more details                                                                                                                            |
 | type      | number    | A numeric representation of the barcode type. More details can be found [here](https://en.urovo.com/developer/constant-values.html#android.device.scanner.configuration.Constants.Symbology.MATRIX25) |
-
-Example
 
 ```json
 {
@@ -198,13 +246,35 @@ enum Symbology {
 
 For additional details on supported symbologies, please refer to the [official Urovo documentation](https://en.urovo.com/developer/android/device/scanner/configuration/Symbology.html)
 
+### OutputMode
+
+Controls how scan data is delivered:
+
+> Set the output mode of the barcode reader (either send output to text box or as Android intent). TextBox Mode allows the captured data to be sent to the text box in focus. Intent mode allows the captured data to be sent as an implicit Intent
+
+`OutputMode.Intent` — data is sent via Android implicit Intent (good for background handling in JS).
+
+`OutputMode.TextBox` — “keyboard wedge”: types into the focused text input.
+
+> **Important!**. When using `OutputMode.TextBox`, there are 2 concerns to keep in mind
+
+1. Urovo does not focus to the input
+2. Urovo does not clear the input
+
+For better UX use [`TextInput.showSoftInputOnFocus`](https://reactnative.dev/docs/textinput#showsoftinputonfocus) parameter
+
+```ts
+export enum OutputMode {
+  INTENT = 0,
+  TEXTBOX = 1,
+}
+```
+
 ## Troubleshooting
 
 ### Stub (Android only)
 
 `Stub` error means that device does not support Urovo methods. If you're using Sentry, make sure to wrap every method in `trycatch`.
-
-Example
 
 ```ts
 // before

@@ -1,14 +1,17 @@
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 import type {
+  OutputMode,
   PropertyID,
   PropertyIdValue,
   Symbology,
 } from 'react-native-urovo';
 
 export interface Spec extends TurboModule {
-  openScanner: () => Promise<boolean>;
+  openScanner: (mode?: OutputMode) => Promise<boolean>;
   closeScanner: () => Promise<boolean>;
+  switchOutputMode: (mode: OutputMode) => Promise<boolean>;
+  getOutputMode: () => Promise<OutputMode>;
   enableAllSymbologies: (enable: boolean) => Promise<Symbology[]>;
   enableSymbologies: (
     symbologies: Symbology[],

@@ -26,14 +26,29 @@ class ScannerController(
         return isOpenSuccessful
     }
 
-    fun switchOutputMode(promise: Promise) {
+    fun switchOutputMode(mode: Int, promise: Promise, reactContext: ReactApplicationContext) {
         try {
-            val isSwitchSuccessful = scanner.switchOutputMode(0)
+            val isSwitchSuccessful = scanner.switchOutputMode(mode)
             if (!isSwitchSuccessful) {
-                promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to intent")
+                promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to ${mode}")
             }
+
+            if (mode == 0) { 
+                registerReceiverIfNeeded(reactContext)
+            }
+            promise.resolve(isSwitchSuccessful)
         } catch (t: Throwable) {
-            promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to intent: ${t.message}")
+            promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to ${mode}: ${t.message}")
+        }
+    }
+    
+    fun getOutputMode(promise: Promise) {
+        try {
+            val mode = scanner.getOutputMode()
+
+            promise.resolve(mode)
+        } catch (t: Throwable) {
+            promise.reject("GET_OUTPUT_MODE_ERROR", "Could not get output mode: ${t.message}")
         }
     }
 

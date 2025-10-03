@@ -8,8 +8,18 @@ class UrovoModule(reactApplicationContext: ReactApplicationContext) : ReactConte
   override fun getName(): String = UrovoModuleImpl.NAME
 
   @ReactMethod
-  fun openScanner(promise: Promise) {
-    implementation.open(promise, reactApplicationContext)
+  fun openScanner(mode: Int, promise: Promise) {
+    implementation.open(mode, promise, reactApplicationContext)
+  }
+  
+  @ReactMethod
+  fun switchOutputMode(mode: Int, promise: Promise) {
+    implementation.switchOutputMode(mode, promise, reactApplicationContext)
+  }
+
+  @ReactMethod
+  fun getOutputMode(promise: Promise) {
+    implementation.getOutputMode(promise)
   }
   
   @ReactMethod
