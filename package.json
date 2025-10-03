@@ -160,12 +160,6 @@
     "output": "lib",
     "targets": [
       [
-        "commonjs",
-        {
-          "esm": true
-        }
-      ],
-      [
         "module",
         {
           "esm": true
@@ -174,8 +168,7 @@
       [
         "typescript",
         {
-          "project": "tsconfig.build.json",
-          "esm": true
+          "project": "tsconfig.build.json"
         }
       ]
     ]
@@ -184,13 +177,9 @@
     "name": "RNUrovoSpec",
     "type": "modules",
     "jsSrcsDir": "src",
-    "outputDir": {
-      "android": "android/generated"
-    },
     "android": {
       "javaPackageName": "com.urovo"
-    },
-    "includesGeneratedCode": true
+    }
   },
   "create-react-native-library": {
     "type": "turbo-module",
