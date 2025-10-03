@@ -94,11 +94,6 @@
   "workspaces": [
     "example"
   ],
-  "engines": {
-    "npm": "please-use-yarn",
-    "yarn": ">= 3.6.1",
-    "node": ">= 20.18.1"
-  },
   "packageManager": "yarn@3.6.1",
   "jest": {
     "preset": "react-native",
