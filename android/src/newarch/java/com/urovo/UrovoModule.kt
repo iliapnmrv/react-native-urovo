@@ -7,12 +7,12 @@ class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactC
 
   override fun getName(): String = UrovoModuleImpl.NAME
 
-  override fun openScanner(mode: Int, promise: Promise) {
-    implementation.open(mode, promise, reactApplicationContext)
+  override fun openScanner(mode: Double, promise: Promise) {
+    implementation.open(mode.toInt(), promise, reactApplicationContext)
   }
   
-  override fun switchOutputMode(mode: Int, promise: Promise) {
-    implementation.switchOutputMode(mode, promise)
+  override fun switchOutputMode(mode: Double, promise: Promise) {
+    implementation.switchOutputMode(mode.toInt(), promise, reactApplicationContext)
   }
   
   override fun getOutputMode(promise: Promise) {

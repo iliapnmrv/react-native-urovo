@@ -79,7 +79,7 @@
     "prettier": "^3.0.3",
     "react": "^19.0.0",
     "react-native": "^0.78.0",
-    "react-native-builder-bob": "^0.35.2",
+    "react-native-builder-bob": "^0.40.13",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
     "typescript": "^5.2.2"
@@ -161,28 +161,18 @@
     "targets": [
       "codegen",
       [
-        "commonjs",
-        {
-          "esm": true
-        }
+        "commonjs"
       ],
       [
-        "module",
-        {
-          "esm": true
-        }
+        "module"
       ],
       [
-        "typescript",
-        {
-          "project": "tsconfig.build.json",
-          "esm": true
-        }
+        "typescript"
       ]
     ]
   },
   "codegenConfig": {
-    "name": "RNUrovoSpec",
+    "name": "UrovoSpec",
     "type": "modules",
     "jsSrcsDir": "src",
     "outputDir": {

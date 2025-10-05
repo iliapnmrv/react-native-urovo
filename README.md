@@ -30,7 +30,25 @@ There are 2 options to get started with
 
 ### 1. `useUrovo` Hook
 
-The useUrovo hook initializes the Urovo module for you by handling setup and cleanup, including the creation of an event listener. You only need to pass an `onScan` callback that handles the scan result:
+Initializes the Urovo scanner for you and wires up an event listener for scan results.
+
+**Parameters**:
+
+- `onScan` (required) — callback invoked on every scan with:
+
+```ts
+type ScanResult = {
+  value: string; // decoded barcode text
+  type: number; // raw symbology type code from device
+  symbology: Symbology; // typed symbology enum
+};
+```
+
+- `outputMode` (optional) — how the device delivers results. Defaults to OutputMode.INTENT.
+
+**Returns**:
+
+`isScannerOpened` — `boolean` after the scanner is successfully opened.
 
 ```ts
 import { useUrovo, type ScanResult } from 'react-native-urovo';

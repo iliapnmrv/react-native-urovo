@@ -22,8 +22,15 @@ export default function App() {
 
   const [outputMode, setOutputMode] = useOutputMode();
   const [isEnabled, setIsEnabled] = usePropertyID(PropertyID.QRCODE_ENABLE);
-  const [beepValue, setBeepValue] = usePropertyID(
+  // urovo uses different properties of beep for intent and keyboard output modes
+  const [intentBeepValue, setIntentBeepValue] = usePropertyID(
     PropertyID.SEND_GOOD_READ_BEEP_ENABLE
+  );
+  const [keyboardBeepValue, setKeyboardBeepValue] = usePropertyID(
+    PropertyID.GOOD_READ_BEEP_ENABLE
+  );
+  const [wedgeKeyboardEnable, setWedgeKeyboardEnable] = usePropertyID(
+    PropertyID.WEDGE_KEYBOARD_ENABLE
   );
 
   const toggleQRSymbology = async () => {
@@ -44,15 +51,24 @@ export default function App() {
         [
           {
             text: 'None (0)',
-            onPress: () => setBeepValue(0),
+            onPress: () => {
+              setKeyboardBeepValue(0);
+              setIntentBeepValue(0);
+            },
           },
           {
             text: 'Short (1)',
-            onPress: () => setBeepValue(1),
+            onPress: () => {
+              setKeyboardBeepValue(1);
+              setIntentBeepValue(1);
+            },
           },
           {
             text: 'Sharp (2)',
-            onPress: () => setBeepValue(2),
+            onPress: () => {
+              setKeyboardBeepValue(2);
+              setIntentBeepValue(2);
+            },
           },
         ],
         { cancelable: true }
@@ -73,12 +89,15 @@ export default function App() {
             text: 'Intent (0)',
             onPress: () => {
               setOutputMode(OutputMode.INTENT);
+              setWedgeKeyboardEnable(0);
             },
           },
           {
             text: 'Textbox (1)',
             onPress: () => {
               setOutputMode(OutputMode.TEXTBOX);
+              // To set Scanner success beep when keystroke output enable WEDGE_KEYBOARD_ENABLE. Select valid value from the following options：
+              setWedgeKeyboardEnable(1);
             },
           },
         ],
@@ -91,6 +110,7 @@ export default function App() {
 
   const {} = useUrovo({
     onScan: setScanResult,
+    outputMode: OutputMode.TEXTBOX,
   });
 
   return (
@@ -103,11 +123,14 @@ export default function App() {
         <Text style={styles.text}>QR enabled: {isEnabled?.toString()}</Text>
 
         <Button title={'Change beep value'} onPress={changeBeepValue} />
-        <Text style={styles.text}>Beep value: {beepValue}</Text>
+        <Text style={styles.text}>Beep value: {intentBeepValue}</Text>
 
         <Button title={'Change output mode'} onPress={changeOutputMode} />
         <Text style={styles.text}>Output mode: {outputMode}</Text>
-        <TextInput placeholder="Test textbox output mode" />
+        <TextInput
+          showSoftInputOnFocus
+          placeholder="Test textbox output mode"
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

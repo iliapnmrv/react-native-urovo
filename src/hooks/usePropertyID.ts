@@ -16,7 +16,10 @@ export const usePropertyID = (property: PropertyID): UsePropertyIDResponse => {
 
   const setProperty = useCallback(
     async (value: PropertyIdValue) => {
-      await setParameter({ [property]: value });
+      const isUpdated = await setParameter({ [property]: value });
+
+      console.log('isUpdated', isUpdated);
+
       setPropertyValue(value);
     },
     [property]
