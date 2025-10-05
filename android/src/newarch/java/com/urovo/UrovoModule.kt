@@ -2,7 +2,7 @@ package com.urovo
 
 import com.facebook.react.bridge.*
 
-class UrovoModule(reactContext: ReactApplicationContext): NativeRNUrovoSpec(reactContext) {
+class UrovoModule(reactContext: ReactApplicationContext): NativeUrovoSpec(reactContext) {
   private var implementation: UrovoModuleImpl = UrovoModuleImpl()
 
   override fun getName(): String = UrovoModuleImpl.NAME
