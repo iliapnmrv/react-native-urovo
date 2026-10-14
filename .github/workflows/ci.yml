@@ -4,12 +4,12 @@ on:
   push:
     branches-ignore:
       - main
-      - 'release/**'
+      - 'feature/**'
       - coverage
   pull_request:
     branches:
       - main
-      - 'release/**'
+      - 'feature/**'
   merge_group:
     types:
       - checks_requested

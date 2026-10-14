@@ -99,7 +99,7 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 
 `yarn test:ci` enforces the Jest coverage thresholds in `package.json` and generates an HTML report in `coverage/lcov-report/index.html`, a JSON summary, and LCOV data. CI displays overall and per-file coverage in the workflow summary and uploads a `coverage-<run-id>` artifact, including when tests fail after producing coverage. Download that artifact from the Actions run and open `lcov-report/index.html` to inspect uncovered lines and branches. Reports are retained for 14 days.
 
-The README badge shows **line coverage on `main`**. Successful test jobs on `main` update `coverage.svg` and `metrics.json` on the generated `coverage` branch using GitHub's built-in token. PRs and release branches produce their own reports and leave the main badge alone. Coverage reporting requires no external account, service, or secret.
+The README badge shows **line coverage on `main`**. Successful test jobs on `main` update `coverage.svg` and `metrics.json` on the generated `coverage` branch using GitHub's built-in token. PRs and feature branches produce their own reports and leave the main badge alone. Coverage reporting requires no external account, service, or secret.
 
 ### Publishing to npm
 
@@ -107,24 +107,24 @@ Releases are built and published by the [Release workflow](https://github.com/il
 
 To start a release:
 
-1. Create a branch from `main` named `release/<version>`, for example `release/1.2.0`.
-2. Set the root `package.json` version to the matching stable target, for example `1.2.0`. Commit the version change with the work being released.
-3. Push the branch. After lint, type checking, unit tests, release automation tests, the library build, and both Android architecture builds pass, CI builds and publishes `1.2.0-beta.N` under the npm `beta` tag. Subsequent pushes increment `N` automatically.
+1. Develop in a `feature/*` branch, for example `feature/output-mode`. All feature pushes run the full CI checks.
+2. Choose the single beta-publishing branch using the repository Actions variable `NPM_BETA_BRANCH`. It is currently set to `feature/output-mode`. To switch it, use `gh variable set NPM_BETA_BRANCH --repo iliapnmrv/react-native-urovo --body feature/scanner`, or edit it in **Settings → Secrets and variables → Actions → Variables**. Other feature branches run CI without publishing.
+3. Set the root `package.json` version to the stable target, for example `1.2.0`. Commit the version change with the work being released and push the selected feature branch. After lint, type checking, unit tests, release automation tests, the library build, and both Android architecture builds pass, CI builds and publishes `1.2.0-beta.N` under the npm `beta` tag. Subsequent pushes to that branch increment `N` automatically.
 4. Install and test the published beta in a consuming app, including on Urovo hardware:
 
 ```sh
 yarn add react-native-urovo@beta
 ```
 
-5. Merge the release branch into `main` when it is ready. After the same checks pass on the merged commit, CI publishes the exact stable target (`1.2.0`) under `latest` and creates a GitHub release.
+5. Merge the feature branch into `main` when it is ready. After the same checks pass on the merged commit, CI publishes the exact stable target (`1.2.0`) under `latest` and creates a GitHub release.
 
 The beta suffix is applied only to the CI checkout and packed artifact. It is never committed back to the branch. Existing beta numbers are read from npm and Git tags, so the current `1.2.0-beta.5` series continues with `1.2.0-beta.6`. Each generated package records its source commit in `gitHead`.
 
-Maintain one active beta release line. A branch targeting an older version cannot replace a newer line's `beta` tag. Once a target has been published as stable, further pushes to its release branch are skipped. Ordinary pushes to `main` also skip publication when its version is already on npm. The existing prerelease version on `main` is skipped during rollout; start `release/1.2.0` and set its target to `1.2.0` to begin the new flow.
+Maintain one active beta release line. A branch targeting an older version cannot replace a newer line's `beta` tag. Once a target has been published as stable, further pushes with that version skip publication. Ordinary pushes to `main` also skip publication when its version is already on npm. An unset `NPM_BETA_BRANCH` disables beta publishing. A prerelease version in `package.json` also leaves publishing disabled, allowing draft work to run CI; change the current `1.2.0-beta.5` to `1.2.0` on `feature/output-mode` to start the new beta flow. Separate `release/*` branches are not required.
 
-Publication runs are queued across the whole package, keeping version allocation and publishing together. GitHub's queue holds up to 100 waiting runs. The workflow retains npm Trusted Publishing through `release.yml` and the GitHub `npm` environment; no npm token is required. Its current environment permits release branches. If branch restrictions are added later, allow both `main` and `release/*`.
+Publication runs are queued across the whole package, keeping version allocation and publishing together. GitHub's queue holds up to 100 waiting runs. The workflow retains npm Trusted Publishing through `release.yml` and the GitHub `npm` environment; no npm token is required. Its current environment permits feature branches. If branch restrictions are added later, allow both `main` and the selected feature branch.
 
-For a build preview, run the Release workflow manually on a release branch with **Publish after all checks pass** unchecked. It uploads an `npm-package-<run-id>` artifact containing the tarball and release plan without publishing or allocating a permanent beta number. Enable publishing for a manual release or recovery run.
+For a build preview, run the Release workflow manually on the selected feature branch with **Publish after all checks pass** unchecked. It uploads an `npm-package-<run-id>` artifact containing the tarball and release plan without publishing or allocating a permanent beta number. Enable publishing for a manual release or recovery run.
 
 If npm publishing succeeds but GitHub release creation fails, rerun the failed publish job. It checks the version's recorded commit and existing GitHub tag, skips the npm upload, and finishes the GitHub release. Rerunning the whole workflow for the same commit also reuses its existing version. A version or tag associated with different code will not be overwritten, and retries do not move npm distribution tags backwards.
 

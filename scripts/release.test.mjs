@@ -28,7 +28,8 @@ const registry = {
 const options = {
   name: 'react-native-urovo',
   version: '1.2.0',
-  ref: 'refs/heads/release/1.2.0',
+  ref: 'refs/heads/feature/output-mode',
+  betaBranch: 'feature/output-mode',
   sha,
   registry,
 };
@@ -43,7 +44,8 @@ test('beta counters use the largest published or tagged number, not lexical orde
     planRelease({
       ...options,
       version: '1.3.0',
-      ref: 'refs/heads/release/1.3.0',
+      ref: 'refs/heads/feature/scanner',
+      betaBranch: 'feature/scanner',
     }).version,
     '1.3.0-beta.1'
   );
@@ -103,15 +105,37 @@ test('main publishes the exact stable target and leaves ordinary subsequent push
   );
 });
 
-test('invalid branches, prerelease targets, and channel downgrades are rejected', () => {
+test('only the selected feature branch publishes beta, without requiring a version in its name', () => {
+  const feature = { ...options, ref: 'refs/heads/feature/scanner/output' };
+  assert.equal(planRelease(feature).action, 'skip');
+  assert.equal(
+    planRelease({ ...feature, betaBranch: 'feature/scanner/output' }).version,
+    '1.2.0-beta.11'
+  );
+  assert.equal(
+    planRelease({ ...options, betaBranch: undefined }).action,
+    'skip'
+  );
+});
+
+test('prerelease versions stay in draft mode until a stable target is chosen', () => {
+  const draft = { ...options, version: '1.2.0-beta.5' };
+  assert.equal(planRelease(draft).action, 'skip');
+  assert.equal(
+    planRelease({ ...draft, ref: 'refs/heads/main' }).action,
+    'skip'
+  );
+});
+
+test('invalid branches, invalid targets, and channel downgrades are rejected', () => {
   for (const change of [
-    { ref: 'refs/heads/feature/scanner' },
+    { ref: 'refs/heads/fix/scanner' },
+    { ref: 'refs/heads/feature/' },
     { ref: 'refs/tags/v1.2.0' },
     { ref: 'refs/heads/release/1.3.0' },
-    { version: '1.2.0-beta.5' },
     { version: '1.02.0' },
     { sha: 'short-sha' },
-    { version: '1.0.0', ref: 'refs/heads/release/1.0.0' },
+    { version: '1.0.0' },
     {
       registry: {
         ...registry,
@@ -153,6 +177,7 @@ function fixture(t, ref = options.ref) {
   const env = {
     GITHUB_SHA: git('rev-parse', 'HEAD'),
     GITHUB_REF: ref,
+    NPM_BETA_BRANCH: options.betaBranch,
     GITHUB_REPOSITORY: 'iliapnmrv/react-native-urovo',
     GITHUB_OUTPUT: join(cwd, 'outputs'),
   };
@@ -337,6 +362,36 @@ test('skipped releases leave package.json unchanged and produce no artifact', as
   assert.equal(result.action, 'skip');
   assert.equal(readFileSync(join(f.cwd, 'package.json'), 'utf8'), before);
   assert.equal(existsSync(join(f.cwd, '.release')), false);
+});
+
+test('other feature branches run checks without changing the version or preparing a package', async (t) => {
+  const f = fixture(t, 'refs/heads/feature/property-ids');
+  const before = readFileSync(join(f.cwd, 'package.json'), 'utf8');
+  const result = await prepareRelease({
+    ...f,
+    loadRegistry: async () =>
+      assert.fail('Other feature branches should not query npm'),
+  });
+  assert.equal(result.action, 'skip');
+  assert.equal(readFileSync(join(f.cwd, 'package.json'), 'utf8'), before);
+  assert.equal(existsSync(join(f.cwd, '.release')), false);
+});
+
+test('changing the selected beta branch prevents an older artifact from publishing', async (t) => {
+  const f = fixture(t);
+  await prepareRelease({ ...f, loadRegistry: async () => registry });
+  f.pack();
+  f.resetManifest();
+  await assert.rejects(
+    publishRelease({
+      ...f,
+      env: { ...f.env, NPM_BETA_BRANCH: 'feature/property-ids' },
+      loadRegistry: async () => registry,
+      checkTag: async () => false,
+      run: () => assert.fail('An inactive beta branch must not publish'),
+    }),
+    /Release plan is no longer current/
+  );
 });
 
 test('GitHub tags are verified through annotated tags before any npm upload', async (t) => {

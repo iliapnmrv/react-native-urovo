@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 'release/**'
+      - 'feature/**'
   workflow_dispatch:
     inputs:
       publish:
@@ -43,6 +43,8 @@ jobs:
 
       - name: Prepare release version
         id: release
+        env:
+          NPM_BETA_BRANCH: ${{ vars.NPM_BETA_BRANCH }}
         run: node scripts/release.mjs prepare
 
       - name: Build package
@@ -96,4 +98,5 @@ jobs:
       - name: Publish package and create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          NPM_BETA_BRANCH: ${{ vars.NPM_BETA_BRANCH }}
         run: node scripts/release.mjs publish

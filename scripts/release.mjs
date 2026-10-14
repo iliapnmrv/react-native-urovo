@@ -44,29 +44,39 @@ function sameCommit(metadata, tagCommit, sha) {
   return metadata?.gitHead === sha || (!metadata?.gitHead && tagCommit === sha);
 }
 
-export function planRelease({ name, version, ref, sha, registry, tags = {} }) {
+export function planRelease({
+  name,
+  version,
+  ref,
+  sha,
+  registry,
+  betaBranch,
+  tags = {},
+}) {
   if (!/^[a-f0-9]{40}$/.test(sha))
     throw new Error('Expected a full commit SHA');
   const isMain = ref === 'refs/heads/main';
-  const branchTarget = ref.startsWith('refs/heads/release/')
-    ? ref.slice('refs/heads/release/'.length)
-    : undefined;
-  if (!isMain && !branchTarget) {
-    throw new Error('Releases require main or a release/<version> branch');
+  const isFeature =
+    ref.startsWith('refs/heads/feature/') &&
+    ref.length > 'refs/heads/feature/'.length;
+  if (!isMain && !isFeature) {
+    throw new Error('Releases require main or a feature/* branch');
   }
 
   const target = version.split('-')[0];
   stableParts(target);
   const plan = { name, target, sha, distTag: isMain ? 'latest' : 'beta' };
   const skip = (reason) => ({ ...plan, action: 'skip', reason });
-  if (isMain && version !== target) {
+  if (isFeature && ref !== `refs/heads/${betaBranch}`) {
     return skip(
-      'Set a stable target version on a release branch before merging'
+      betaBranch
+        ? `Beta publishing is enabled only for ${betaBranch}`
+        : 'Set NPM_BETA_BRANCH to choose a feature branch for beta publishing'
     );
   }
-  if (version !== target || (!isMain && branchTarget !== target)) {
-    throw new Error(
-      'The release branch and package.json must use the same stable target version'
+  if (version !== target) {
+    return skip(
+      'Set package.json version to a stable target before publishing'
     );
   }
 
@@ -168,14 +178,22 @@ export async function prepareRelease({
   verifyCheckout(cwd, env.GITHUB_SHA);
   const packagePath = join(cwd, 'package.json');
   const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
-  const plan = planRelease({
+  const options = {
     name: pkg.name,
     version: pkg.version,
     ref: env.GITHUB_REF,
     sha: env.GITHUB_SHA,
-    registry: await loadRegistry(pkg.name),
-    tags: readTags(cwd),
-  });
+    betaBranch: env.NPM_BETA_BRANCH,
+  };
+  const draft = planRelease({ ...options, registry: {} });
+  const plan =
+    draft.action === 'skip'
+      ? draft
+      : planRelease({
+          ...options,
+          registry: await loadRegistry(pkg.name),
+          tags: readTags(cwd),
+        });
   if (plan.action !== 'skip') {
     mkdirSync(join(cwd, '.release'), { recursive: true });
     writeFileSync(
@@ -271,6 +289,7 @@ export async function publishRelease({
     ref: env.GITHUB_REF,
     sha: plan.sha,
     registry,
+    betaBranch: env.NPM_BETA_BRANCH,
     tags: {
       ...readTags(cwd),
       ...(tagExists ? { [plan.version]: plan.sha } : {}),
