@@ -3,13 +3,17 @@ package com.urovo.scan
 import android.content.IntentFilter
 import android.device.ScanManager
 import android.device.ScanManager.ACTION_DECODE
-import com.facebook.react.bridge.Promise
+import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.ReactApplicationContext
 import com.urovo.scan.broadcast.BeamBroadcastReceiver
 
 class ScannerController(
     private val scanner: ScanManager
 ) {
+
+    companion object {
+        const val OUTPUT_MODE_INTENT = 0
+    }
 
     private var beamBroadcastReceiver: BeamBroadcastReceiver? = null
 
@@ -26,37 +30,34 @@ class ScannerController(
         return isOpenSuccessful
     }
 
-    fun switchOutputMode(mode: Int, promise: Promise, reactContext: ReactApplicationContext) {
-        try {
-            val isSwitchSuccessful = scanner.switchOutputMode(mode)
-            if (!isSwitchSuccessful) {
-                promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to ${mode}")
-            }
-
-            if (mode == 0) { 
-                registerReceiverIfNeeded(reactContext)
-            }
-            promise.resolve(isSwitchSuccessful)
-        } catch (t: Throwable) {
-            promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to ${mode}: ${t.message}")
+    fun switchOutputMode(mode: Int, reactContext: ReactApplicationContext): Boolean {
+        val isSwitchSuccessful = scanner.switchOutputMode(mode)
+        if (!isSwitchSuccessful) {
+            return false
         }
-    }
-    
-    fun getOutputMode(promise: Promise) {
-        try {
-            val mode = scanner.getOutputMode()
 
-            promise.resolve(mode)
-        } catch (t: Throwable) {
-            promise.reject("GET_OUTPUT_MODE_ERROR", "Could not get output mode: ${t.message}")
+        if (mode == OUTPUT_MODE_INTENT) {
+            registerReceiverIfNeeded(reactContext)
+        } else {
+            unregisterReceiver(reactContext)
         }
+
+        return true
     }
+
+    fun getOutputMode(): Int = scanner.getOutputMode()
 
     fun registerReceiverIfNeeded(reactContext: ReactApplicationContext) {
         if (beamBroadcastReceiver == null) {
-            beamBroadcastReceiver = BeamBroadcastReceiver(reactContext)
+            val receiver = BeamBroadcastReceiver(reactContext)
             val filter = IntentFilter(ACTION_DECODE)
-            reactContext.registerReceiver(beamBroadcastReceiver, filter)
+            ContextCompat.registerReceiver(
+                reactContext,
+                receiver,
+                filter,
+                ContextCompat.RECEIVER_EXPORTED
+            )
+            beamBroadcastReceiver = receiver
         }
     }
 
@@ -70,8 +71,13 @@ class ScannerController(
 
     fun unregisterReceiver(reactContext: ReactApplicationContext) {
         beamBroadcastReceiver?.let {
-            reactContext.unregisterReceiver(it)
-            beamBroadcastReceiver = null
+            try {
+                reactContext.unregisterReceiver(it)
+            } catch (ignored: IllegalArgumentException) {
+                // The host may have already unregistered receivers during teardown.
+            } finally {
+                beamBroadcastReceiver = null
+            }
         }
     }
 }

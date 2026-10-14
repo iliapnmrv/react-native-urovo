@@ -7,10 +7,10 @@ import {
 import {
   closeScanner,
   openScanner,
-  OutputMode,
   UROVO_EVENTS,
   type ScanResult,
-} from 'react-native-urovo';
+} from '../api';
+import { OutputMode } from '../types';
 import NativeUrovo from '../NativeUrovo';
 
 export type UseUrovoProps = {
@@ -32,20 +32,26 @@ export const useUrovo = ({
     let isMounted = true;
 
     const open = async () => {
-      const isOpened = await openScanner(outputMode);
+      try {
+        const isOpened = await openScanner(outputMode);
 
-      if (isMounted) {
-        setIsScannerOpened(!!isOpened);
+        if (isMounted) {
+          setIsScannerOpened(!!isOpened);
+        }
+      } catch {
+        if (isMounted) {
+          setIsScannerOpened(false);
+        }
       }
     };
 
-    open();
+    open().catch(() => undefined);
 
     return () => {
       isMounted = false;
-      closeScanner();
+      closeScanner()?.catch(() => undefined);
     };
-  }, []);
+  }, [outputMode]);
 
   useEffect(() => {
     let eventListener: EmitterSubscription | undefined;

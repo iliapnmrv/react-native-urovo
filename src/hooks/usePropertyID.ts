@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  getParameters,
-  PropertyID,
-  setParameter,
-  type PropertyIdValue,
-} from 'react-native-urovo';
+import { getParameters, setParameter } from '../api';
+import { PropertyID, type PropertyIdValue } from '../types';
 
 type UsePropertyIDResponse = [
   PropertyIdValue | undefined,
@@ -17,10 +13,9 @@ export const usePropertyID = (property: PropertyID): UsePropertyIDResponse => {
   const setProperty = useCallback(
     async (value: PropertyIdValue) => {
       const isUpdated = await setParameter({ [property]: value });
-
-      console.log('isUpdated', isUpdated);
-
-      setPropertyValue(value);
+      if (isUpdated) {
+        setPropertyValue(value);
+      }
     },
     [property]
   );
@@ -31,7 +26,7 @@ export const usePropertyID = (property: PropertyID): UsePropertyIDResponse => {
   }, [property]);
 
   useEffect(() => {
-    getProperty();
+    getProperty().catch(() => undefined);
   }, [getProperty]);
 
   return [propertyValue, setProperty];

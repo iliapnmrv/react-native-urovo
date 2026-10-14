@@ -251,11 +251,11 @@ export interface Spec extends TurboModule {
   closeScanner: () => Promise<boolean>;
   switchOutputMode: (mode: OutputMode) => Promise<boolean>;
   getOutputMode: () => Promise<OutputMode>;
-  enableAllSymbologies: (enable: boolean) => Promise<Symbology[]>;
+  enableAllSymbologies: (enable: boolean) => Promise<boolean>;
   enableSymbologies: (
     symbologies: Symbology[],
     enable: boolean
-  ) => Promise<Symbology[]>;
+  ) => Promise<boolean>;
 
   getParameters: (
     ids: number[]

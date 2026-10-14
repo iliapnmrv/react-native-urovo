@@ -1,10 +1,11 @@
 {
   "name": "react-native-urovo",
-  "version": "1.2.0-beta.4",
+  "version": "1.2.0-beta.5",
   "description": "React native bindings for urovo scanners",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
+  "types": "./lib/typescript/commonjs/src/index.d.ts",
   "exports": {
     ".": {
       "import": {
@@ -27,6 +28,7 @@
     "react-native.config.js",
     "!ios/build",
     "!android/build",
+    "!android/app/build",
     "!android/gradle",
     "!android/gradlew",
     "!android/gradlew.bat",
@@ -39,11 +41,11 @@
   "scripts": {
     "example": "yarn workspace react-native-urovo-example",
     "test": "jest",
+    "test:ci": "jest --maxWorkers=2 --coverage --watchman=false",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "prepare": "bob build",
-    "release": "release-it"
+    "prepare": "bob build"
   },
   "keywords": [
     "react-native",
@@ -67,7 +69,7 @@
     "@commitlint/config-conventional": "^17.0.2",
     "@react-native-community/cli": "15.0.1",
     "@react-native/eslint-config": "^0.73.1",
-    "@release-it/conventional-changelog": "^9.0.2",
+    "@testing-library/react-native": "14.0.0",
     "@types/jest": "^29.5.5",
     "@types/react": "^18.2.44",
     "commitlint": "^17.0.2",
@@ -80,7 +82,7 @@
     "react": "^19.0.0",
     "react-native": "^0.78.0",
     "react-native-builder-bob": "^0.40.13",
-    "release-it": "^17.10.0",
+    "test-renderer": "1.0.0",
     "turbo": "^1.10.7",
     "typescript": "^5.2.2"
   },
@@ -97,6 +99,24 @@
   "packageManager": "yarn@3.6.1",
   "jest": {
     "preset": "react-native",
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/NativeUrovo.ts",
+      "!src/types/**",
+      "!src/index.tsx",
+      "!src/hooks/index.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
       "<rootDir>/lib/"
@@ -106,23 +126,6 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
-  },
-  "release-it": {
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
-    },
-    "npm": {
-      "publish": true
-    },
-    "github": {
-      "release": true
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": "angular"
-      }
-    }
   },
   "eslintConfig": {
     "root": true,
@@ -145,6 +148,7 @@
     }
   },
   "eslintIgnore": [
+    "coverage/",
     "node_modules/",
     "lib/"
   ],
@@ -161,13 +165,22 @@
     "targets": [
       "codegen",
       [
-        "commonjs"
+        "commonjs",
+        {
+          "esm": true
+        }
       ],
       [
-        "module"
+        "module",
+        {
+          "esm": true
+        }
       ],
       [
-        "typescript"
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
       ]
     ]
   },

@@ -26,10 +26,10 @@ export default function App() {
   const [intentBeepValue, setIntentBeepValue] = usePropertyID(
     PropertyID.SEND_GOOD_READ_BEEP_ENABLE
   );
-  const [keyboardBeepValue, setKeyboardBeepValue] = usePropertyID(
+  const [, setKeyboardBeepValue] = usePropertyID(
     PropertyID.GOOD_READ_BEEP_ENABLE
   );
-  const [wedgeKeyboardEnable, setWedgeKeyboardEnable] = usePropertyID(
+  const [, setWedgeKeyboardEnable] = usePropertyID(
     PropertyID.WEDGE_KEYBOARD_ENABLE
   );
 

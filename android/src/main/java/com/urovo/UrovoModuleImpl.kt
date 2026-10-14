@@ -30,10 +30,17 @@ class UrovoModuleImpl {
                 promise.resolve(false)
                 return
             }
-            scannerController.switchOutputMode(mode, promise, reactCtx)
+
+            val switched = scannerController.switchOutputMode(mode, reactCtx)
+            if (!switched) {
+                cleanup(reactCtx)
+                promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to $mode")
+                return
+            }
 
             promise.resolve(true)
         } catch (t: Throwable) {
+            cleanup(reactCtx)
             promise.reject("OPEN_SCANNER_ERROR", t)
         }
     }
@@ -69,11 +76,33 @@ class UrovoModuleImpl {
     }
     
     fun switchOutputMode(mode: Int, promise: Promise, reactCtx: ReactApplicationContext) {
-        scannerController.switchOutputMode(mode, promise, reactCtx)
+        try {
+            val switched = scannerController.switchOutputMode(mode, reactCtx)
+            if (switched) {
+                promise.resolve(true)
+            } else {
+                promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to $mode")
+            }
+        } catch (t: Throwable) {
+            promise.reject("SWITCH_SCANNER_ERROR", "Could not switch output mode to $mode", t)
+        }
     }
     
     fun getOutputMode(promise: Promise) {
-        scannerController.getOutputMode(promise)
+        try {
+            promise.resolve(scannerController.getOutputMode())
+        } catch (t: Throwable) {
+            promise.reject("GET_OUTPUT_MODE_ERROR", "Could not get output mode", t)
+        }
+    }
+
+    private fun cleanup(reactCtx: ReactApplicationContext) {
+        scannerController.closeScanner()
+        try {
+            scannerController.unregisterReceiver(reactCtx)
+        } catch (t: Throwable) {
+            LOG.warning("Could not unregister scanner receiver: ${t.message}")
+        }
     }
 
     // fun getConstants(): MutableMap<String, Any> {

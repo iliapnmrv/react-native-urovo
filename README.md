@@ -1,5 +1,7 @@
 # react-native-urovo
 
+[![codecov](https://codecov.io/gh/iliapnmrv/react-native-urovo/branch/main/graph/badge.svg)](https://codecov.io/gh/iliapnmrv/react-native-urovo)
+
 React native bindings for urovo scanners
 
 - Works on both old `Legacy Native Modules` and new `Turbo Native Modules` architectures
@@ -107,7 +109,7 @@ Opens the Urovo scanner instance.
 
 **Parameters**:
 
-mode?: OutputMode — if omitted, `OutputMode.Intent` mode is used.
+mode?: OutputMode — if omitted, `OutputMode.INTENT` mode is used.
 
 **Returns**:
 
@@ -116,9 +118,9 @@ Promise<boolean> — true if the scanner was opened successfully.
 ```ts
 // these  calls are equal
 await openScanner();
-await openScanner(OutputMode.Intent);
+await openScanner(OutputMode.INTENT);
 
-const ok = await openScanner(OutputMode.TextBox);
+const ok = await openScanner(OutputMode.TEXTBOX);
 ```
 
 ### closeScanner
@@ -150,7 +152,7 @@ mode: OutputMode
 Promise — true if the mode is applied.
 
 ```ts
-await switchOutputMode(OutputMode.Intent);
+await switchOutputMode(OutputMode.INTENT);
 ```
 
 ### getParameters
@@ -270,11 +272,11 @@ Controls how scan data is delivered:
 
 > Set the output mode of the barcode reader (either send output to text box or as Android intent). TextBox Mode allows the captured data to be sent to the text box in focus. Intent mode allows the captured data to be sent as an implicit Intent
 
-`OutputMode.Intent` — data is sent via Android implicit Intent (good for background handling in JS).
+`OutputMode.INTENT` — data is sent via Android implicit Intent (good for background handling in JS).
 
-`OutputMode.TextBox` — “keyboard wedge”: types into the focused text input.
+`OutputMode.TEXTBOX` — “keyboard wedge”: types into the focused text input.
 
-> **Important!**. When using `OutputMode.TextBox`, there are 2 concerns to keep in mind
+> **Important!**. When using `OutputMode.TEXTBOX`, there are 2 concerns to keep in mind
 
 1. Urovo does not focus to the input
 2. Urovo does not clear the input
