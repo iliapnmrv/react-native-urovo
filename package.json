@@ -110,6 +110,11 @@
       "!src/index.tsx",
       "!src/hooks/index.ts"
     ],
+    "coverageReporters": [
+      "text",
+      "json-summary",
+      "lcov"
+    ],
     "coverageThreshold": {
       "global": {
         "branches": 70,

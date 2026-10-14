@@ -95,6 +95,12 @@ We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint]
 
 Our pre-commit hooks verify that the linter and tests pass when committing.
 
+### Coverage reports
+
+`yarn test:ci` enforces the Jest coverage thresholds in `package.json` and generates an HTML report in `coverage/lcov-report/index.html`, a JSON summary, and LCOV data. CI displays overall and per-file coverage in the workflow summary and uploads a `coverage-<run-id>` artifact, including when tests fail after producing coverage. Download that artifact from the Actions run and open `lcov-report/index.html` to inspect uncovered lines and branches. Reports are retained for 14 days.
+
+The README badge shows **line coverage on `main`**. Successful test jobs on `main` update `coverage.svg` and `metrics.json` on the generated `coverage` branch using GitHub's built-in token. PRs and release branches produce their own reports and leave the main badge alone. Coverage reporting requires no external account, service, or secret.
+
 ### Publishing to npm
 
 Releases are built and published by the [Release workflow](https://github.com/iliapnmrv/react-native-urovo/actions/workflows/release.yml). The stable target version is chosen explicitly in the root `package.json`; CI assigns beta numbers and publishes the package.

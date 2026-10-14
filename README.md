@@ -1,6 +1,6 @@
 # react-native-urovo
 
-[![codecov](https://codecov.io/gh/iliapnmrv/react-native-urovo/branch/main/graph/badge.svg)](https://codecov.io/gh/iliapnmrv/react-native-urovo)
+[![Line coverage](https://raw.githubusercontent.com/iliapnmrv/react-native-urovo/coverage/coverage.svg)](https://github.com/iliapnmrv/react-native-urovo/actions/workflows/release.yml?query=branch%3Amain)
 
 React native bindings for urovo scanners
 

@@ -5,6 +5,7 @@ on:
     branches-ignore:
       - main
       - 'release/**'
+      - coverage
   pull_request:
     branches:
       - main
@@ -35,9 +36,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,11 +49,75 @@ jobs:
       - name: Test release automation
         run: yarn test:release
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v5
+      - name: Summarize coverage
+        if: ${{ !cancelled() && hashFiles('coverage/coverage-summary.json') != '' }}
+        run: node scripts/coverage.mjs
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() && hashFiles('coverage/coverage-summary.json') != '' }}
+        uses: actions/upload-artifact@v4
         with:
-          files: ./coverage/lcov.info
-          use_oidc: true
+          name: coverage-${{ github.run_id }}
+          path: coverage/
+          if-no-files-found: error
+          retention-days: 14
+          overwrite: true
+
+  coverage-badge:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: coverage-badge
+      cancel-in-progress: true
+    steps:
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-${{ github.run_id }}
+          path: coverage
+
+      - name: Update coverage badge
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('node:fs');
+            const repository = context.repo;
+            const main = await github.rest.repos.getBranch({ ...repository, branch: 'main' });
+            if (main.data.commit.sha !== context.sha) {
+              core.info('A newer main commit exists; leaving its badge unchanged');
+              return;
+            }
+            let parent;
+            try {
+              const ref = await github.rest.git.getRef({ ...repository, ref: 'heads/coverage' });
+              parent = ref.data.object.sha;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            const files = ['coverage.svg', 'metrics.json'];
+            const tree = await github.rest.git.createTree({
+              ...repository,
+              tree: files.map(path => ({
+                path,
+                mode: '100644',
+                type: 'blob',
+                content: fs.readFileSync(`coverage/${path}`, 'utf8'),
+              })),
+            });
+            const commit = await github.rest.git.createCommit({
+              ...repository,
+              message: `Update coverage for ${context.sha}`,
+              tree: tree.data.sha,
+              parents: parent ? [parent] : [],
+            });
+            if (parent) {
+              await github.rest.git.updateRef({ ...repository, ref: 'heads/coverage', sha: commit.data.sha });
+            } else {
+              await github.rest.git.createRef({ ...repository, ref: 'refs/heads/coverage', sha: commit.data.sha });
+            }
 
   build-library:
     runs-on: ubuntu-latest
