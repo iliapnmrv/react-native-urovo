@@ -43,6 +43,8 @@
     "test": "jest",
     "test:ci": "jest --maxWorkers=2 --coverage --watchman=false",
     "test:release": "node --test scripts/release.test.mjs",
+    "release": "release-it --ci",
+    "release:beta": "release-it --ci --preRelease=beta --preReleaseBase=1 --no-git.requireBranch",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
@@ -83,6 +85,7 @@
     "react": "^19.0.0",
     "react-native": "^0.78.0",
     "react-native-builder-bob": "^0.40.13",
+    "release-it": "^20.2.1",
     "test-renderer": "1.0.0",
     "turbo": "^1.10.7",
     "typescript": "^5.2.2"

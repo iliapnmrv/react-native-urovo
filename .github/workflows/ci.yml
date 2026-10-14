@@ -3,15 +3,17 @@ name: CI
 on:
   push:
     branches-ignore:
-      - main
       - coverage
   pull_request:
-    branches-ignore:
-      - main
   merge_group:
     types:
       - checks_requested
   workflow_call:
+    inputs:
+      ref:
+        description: Git ref to check and pack
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -22,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -37,6 +41,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -46,10 +52,6 @@ jobs:
 
       - name: Test release automation
         run: yarn test:release
-
-      - name: Validate PR title
-        if: github.event_name == 'pull_request' && github.base_ref == 'main'
-        run: node scripts/release.mjs validate
 
       - name: Summarize coverage
         if: ${{ !cancelled() && hashFiles('coverage/coverage-summary.json') != '' }}
@@ -126,12 +128,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Setup
         uses: ./.github/actions/setup
 
       - name: Build package
         run: yarn prepare
+
+      - name: Pack package
+        run: node scripts/release.mjs pack
+
+      - name: Verify package contents
+        run: node scripts/release.mjs verify
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package-${{ github.run_id }}
+          path: .release/*.tgz
+          if-no-files-found: error
+          retention-days: 14
+          overwrite: true
 
   build-android:
     runs-on: ubuntu-latest
@@ -145,6 +164,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Setup
         uses: ./.github/actions/setup

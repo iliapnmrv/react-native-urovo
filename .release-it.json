@@ -1,0 +1,21 @@
+{
+  "git": {
+    "requireBranch": "main",
+    "requireCleanWorkingDir": true,
+    "requireUpstream": true,
+    "requireCommits": true,
+    "commitMessage": "chore(release): v${version}",
+    "tagName": "v${version}",
+    "tagExclude": "*[-]*",
+    "pushRepo": "origin",
+    "pushArgs": ["--follow-tags", "--atomic"]
+  },
+  "npm": {
+    "publish": false,
+    "skipChecks": true,
+    "versionArgs": ["--ignore-scripts", "--workspaces-update=false"]
+  },
+  "github": {
+    "release": false
+  }
+}

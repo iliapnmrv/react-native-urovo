@@ -17,7 +17,7 @@ To get started with the project, run `yarn` in the root directory to install the
 yarn
 ```
 
-> Since the project relies on Yarn workspaces, you cannot use [`npm`](https://github.com/npm/cli) for development.
+> Since the project relies on Yarn workspaces, use Yarn for dependency installation; npm is supported for running the release scripts below.
 
 The [example app](/example/) demonstrates usage of the library. You need to run it to test any changes you make.
 
@@ -103,42 +103,51 @@ The README badge shows **line coverage on `main`**. Successful test jobs on `mai
 
 ### Publishing to npm
 
-Releases are built and published by the [Release workflow](https://github.com/iliapnmrv/react-native-urovo/actions/workflows/release.yml). CI calculates versions from the last stable npm release and Conventional Commits. You do not need to edit `package.json` or choose a beta branch in repository settings.
+Development happens in working branches. PRs and ordinary pushes run CI and never publish. Test changes in the example app on Urovo hardware, merge ready PRs into `main`, and release when you choose. Several merged changes can be included in one release.
 
-To start a release:
+Every successful library build uploads an `npm-package-<run-id>` artifact with a `.tgz` package. CI verifies its compiled entry points, declarations, native package files, version, and source commit. Download it to test installation in a separate app without publishing a beta. The example uses local source code, so checking the packed package also catches packaging problems. Artifacts are retained for 14 days.
 
-1. Develop in one branch with any name, for example `feature/output-mode`, `fix/scanner`, or `scanner-experiment`. Pushes run the full CI checks without publishing.
-2. Open a PR into `main` manually. Use a Conventional Commit title describing the whole change. A draft PR runs checks; mark it ready when you want a beta.
-3. After lint, type checking, unit tests, release automation tests, the library build, and both Android architecture builds pass, a ready PR from this repository publishes a beta. Opening or reopening a ready PR, updating its title, and subsequent pushes trigger this flow. PRs from forks run checks without publishing.
-4. Install and test the published beta in a consuming app, including on Urovo hardware:
+Install development dependencies with Yarn, then run the npm release script from a clean, up-to-date `main`:
 
 ```sh
-yarn add react-native-urovo@beta
+git switch main
+git pull --ff-only
+yarn install --immutable
+npm run release -- patch
 ```
 
-5. Merge the PR into `main` when it is ready. Prefer **Squash and merge** with the PR title. After checks pass on the merged commit, CI publishes a stable version under `latest` and creates a GitHub release.
+Choose the increment yourself:
 
-The PR title selects the release type:
+```sh
+npm run release -- patch  # 1.2.0 -> 1.2.1
+npm run release -- minor  # 1.2.0 -> 1.3.0
+npm run release -- major  # 1.2.0 -> 2.0.0
+```
 
-| PR title                                                             | Version change | Example from stable `1.1.0` |
-| -------------------------------------------------------------------- | -------------- | --------------------------- |
-| `fix: scanner crash`                                                 | patch          | `1.1.1-beta.1` → `1.1.1`    |
-| `perf: faster scanning`                                              | patch          | `1.1.1-beta.1` → `1.1.1`    |
-| `feat: add output mode`                                              | minor          | `1.2.0-beta.1` → `1.2.0`    |
-| `feat!: replace scanner API`                                         | major          | `2.0.0-beta.1` → `2.0.0`    |
-| `docs: update README`, `ci: update Actions`, `chore: update tooling` | none           | checks only                 |
+The command uses `release-it` to update the root `package.json`, create a `chore(release): v<version>` commit and an annotated `v<version>` tag, and push the branch and tags atomically. It requires an upstream branch and commits since the previous stable release. The npm command runs a script; dependency installation still uses Yarn. No local npm login or token is required.
 
-The target is bumped once from npm's `latest`; each push increments only `beta.N`. Existing beta numbers are read from npm and Git tags, so a feature PR currently continues the `1.2.0-beta.5` series with `1.2.0-beta.6`. Non-release PR titles skip publishing even if their individual commits use `feat:` or `fix:`. Invalid PR titles fail a CI check.
+Pushing the version tag starts the [Release workflow](https://github.com/iliapnmrv/react-native-urovo/actions/workflows/release.yml). After tests, lint, types, the library build, and both Android architecture builds pass, it publishes the exact tested tarball to npm using Trusted Publishing, then creates a GitHub release. Release notes list commits and their authors since the previous reachable stable tag, with links to the commits and full diff. Version-only release commits are omitted. Commit messages never select the version increment.
 
-Stable releases analyze changes since the previous stable tag. Merged PR titles determine their release type; direct commits on `main` use their Conventional Commit messages. The largest change wins: major, then minor, then patch. Unreleased changes already on `main` are included in beta targets too. In this repository, existing main changes already require `1.2.0`, even though npm `latest` is still `1.1.0`. Pushes with no release changes skip publication.
+The committed package version is the source of numbering. Its current `1.2.0-beta.5` promotes to `1.2.0` with a stable `patch` or `minor` release; subsequent increments follow the examples above. Stable tags must point to a commit contained in `main`. Keep the npm trusted publisher configured for `release.yml` and the GitHub `npm` environment.
 
-Versions and `gitHead` are written only to the CI checkout and packed artifact; no version commit is pushed back. The committed `package.json` version is not the source of release numbering. Update branches from `main` when another PR has released: a later merge can change the next target version. The shared npm `beta` tag points to the most recently published beta from any PR; install an exact version from the workflow summary when testing concurrent PRs.
+To preview the version and local changelog without committing, tagging, or pushing:
 
-Publication runs are queued across the whole package, keeping version allocation and publishing together. The workflow retains npm Trusted Publishing through `release.yml` and the GitHub `npm` environment; no npm token is required. If deployment restrictions are added later, allow `main` and same-repository PRs. Immediately before publishing, the workflow rechecks the PR state, title, and head commit. Closed, draft, and superseded PR runs cannot publish their old artifacts.
+```sh
+npm run release -- minor --dry-run
+```
 
-For a build preview, run the Release workflow manually on a branch with an open ready PR, with **Publish after all checks pass** unchecked. It uploads an `npm-package-<run-id>` artifact containing the tarball and release plan without publishing or reserving a beta number. A manual run on `main` previews the next stable release. Enable publishing for a manual release or recovery run.
+You can also run Release manually in GitHub Actions with an empty **tag** and **Publish the selected tag** unchecked. This runs checks and uploads the package artifact from the selected branch without changing its version or publishing.
 
-If npm publishing succeeds but GitHub release creation fails, rerun the failed publish job. It checks the version's recorded commit and existing GitHub tag, skips the npm upload, and finishes the GitHub release. Rerunning the whole workflow for the same commit also reuses its existing version. A version or tag associated with different code will not be overwritten, and retries do not move npm distribution tags backwards.
+Betas are optional and always manual. From a working branch with an upstream, start a beta for the chosen next version:
+
+```sh
+npm run release:beta -- minor  # 1.2.0 -> 1.3.0-beta.1
+npm run release:beta           # next beta in the same series
+```
+
+The beta command commits its version and pushes its tag too. The workflow publishes it under npm `beta` and creates a GitHub prerelease. Test it with `yarn add react-native-urovo@beta`, then merge ready work into `main` and run the stable release command when ready. Beta tags are excluded when collecting stable release notes, so the stable release includes the complete change history.
+
+If the command creates a local commit and tag but pushing fails, resolve the Git issue and push that same commit and tag; do not bump again just to retry the push. For example: `git push --atomic origin main v1.2.0`. If a publish job fails, rerun it, or run Release manually with the existing **tag** and publishing enabled. A retry verifies the tag and npm commit, skips an already completed npm upload, and finishes the GitHub release. Tags and published versions associated with other code are never overwritten.
 
 ### Scripts
 
@@ -148,7 +157,9 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn typecheck`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
 - `yarn test`: run unit tests with Jest.
-- `yarn test:release`: verify version allocation, package artifacts, and publication recovery without publishing anything.
+- `yarn test:release`: verify the release command against local test remotes, package artifacts, release notes, and publication recovery without publishing anything.
+- `npm run release -- patch|minor|major`: create and push a stable release tag from `main`.
+- `npm run release:beta -- minor`: create and push an optional beta release tag from a working branch.
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example ios`: run the example app on iOS.
