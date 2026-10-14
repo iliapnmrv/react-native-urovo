@@ -95,7 +95,7 @@ jobs:
       - name: Publish to npm
         env:
           DIST_TAG: ${{ inputs.dist_tag }}
-        run: npm publish package/react-native-urovo-*.tgz --tag "$DIST_TAG" --registry https://registry.npmjs.org
+        run: npm publish ./package/react-native-urovo-*.tgz --tag "$DIST_TAG" --registry https://registry.npmjs.org
 
       - name: Create GitHub tag and release
         env:
