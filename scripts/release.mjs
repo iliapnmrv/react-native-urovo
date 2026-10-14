@@ -44,52 +44,106 @@ function sameCommit(metadata, tagCommit, sha) {
   return metadata?.gitHead === sha || (!metadata?.gitHead && tagCommit === sha);
 }
 
+const commitPattern =
+  /^(feat|fix|perf|refactor|docs|test|build|ci|chore|style|revert)(?:\([^\r\n()]+\))?(!)?: [^\r\n]+/;
+const releaseRanks = { patch: 1, minor: 2, major: 3 };
+
+export function releaseType(messages) {
+  let result;
+  for (const message of messages) {
+    const match = commitPattern.exec(message);
+    if (!match) continue;
+    const type =
+      match[2] || /^BREAKING[ -]CHANGE: /m.test(message)
+        ? 'major'
+        : match[1] === 'feat'
+          ? 'minor'
+          : ['fix', 'perf', 'revert'].includes(match[1])
+            ? 'patch'
+            : undefined;
+    if ((releaseRanks[type] ?? 0) > (releaseRanks[result] ?? 0)) result = type;
+  }
+  return result;
+}
+
+export function validateTitle(title) {
+  if (
+    typeof title !== 'string' ||
+    /[\r\n]/.test(title) ||
+    !commitPattern.test(title)
+  ) {
+    throw new Error(
+      'PR title must use Conventional Commits, e.g. feat: add output mode, fix: scanner crash, or feat!: change the API'
+    );
+  }
+  return releaseType([title]);
+}
+
+function bumpVersion(version, type) {
+  const [major, minor, patch] = stableParts(version);
+  const next =
+    type === 'major'
+      ? `${major + 1}.0.0`
+      : type === 'minor'
+        ? `${major}.${minor + 1}.0`
+        : `${major}.${minor}.${patch + 1}`;
+  stableParts(next);
+  return next;
+}
+
 export function planRelease({
   name,
-  version,
-  ref,
   sha,
   registry,
-  betaBranch,
+  mode,
+  title,
+  pullRequest,
+  changes = [],
   tags = {},
 }) {
   if (!/^[a-f0-9]{40}$/.test(sha))
     throw new Error('Expected a full commit SHA');
-  const isMain = ref === 'refs/heads/main';
-  const isFeature =
-    ref.startsWith('refs/heads/feature/') &&
-    ref.length > 'refs/heads/feature/'.length;
-  if (!isMain && !isFeature) {
-    throw new Error('Releases require main or a feature/* branch');
-  }
-
-  const target = version.split('-')[0];
-  stableParts(target);
-  const plan = { name, target, sha, distTag: isMain ? 'latest' : 'beta' };
+  if (!['beta', 'stable'].includes(mode))
+    throw new Error('Expected beta or stable release mode');
+  const isMain = mode === 'stable';
+  const plan = {
+    name,
+    sha,
+    mode,
+    distTag: isMain ? 'latest' : 'beta',
+    ...(isMain ? {} : { pullRequest, title }),
+  };
   const skip = (reason) => ({ ...plan, action: 'skip', reason });
-  if (isFeature && ref !== `refs/heads/${betaBranch}`) {
-    return skip(
-      betaBranch
-        ? `Beta publishing is enabled only for ${betaBranch}`
-        : 'Set NPM_BETA_BRANCH to choose a feature branch for beta publishing'
-    );
+  if (!isMain) {
+    if (!Number.isSafeInteger(pullRequest) || pullRequest < 1)
+      throw new Error('Beta releases require an open pull request');
+    if (!validateTitle(title)) return skip('PR has no release changes');
   }
-  if (version !== target) {
-    return skip(
-      'Set package.json version to a stable target before publishing'
+  const versions = registry.versions ?? {};
+  if (isMain) {
+    const existing = Object.keys(versions).find(
+      (version) =>
+        stablePattern.test(version) &&
+        sameCommit(versions[version], tags[version], sha)
     );
+    if (existing) {
+      return {
+        ...plan,
+        target: existing,
+        version: existing,
+        action: 'recover',
+      };
+    }
   }
 
-  const versions = registry.versions ?? {};
+  const baseline = registry['dist-tags']?.latest ?? '0.0.0';
+  stableParts(baseline);
+  const type = releaseType(isMain ? changes : [...changes, title]);
+  if (!type) return skip('No release changes since the last stable release');
+  const target = bumpVersion(baseline, type);
+  Object.assign(plan, { target, baseline, type });
   if (versions[target]) {
-    if (isMain && sameCommit(versions[target], tags[target], sha)) {
-      return { ...plan, version: target, action: 'recover' };
-    }
-    return skip(`${target} has already been published as stable`);
-  }
-  const latest = registry['dist-tags']?.latest;
-  if (latest && compareStable(target, latest.split('-')[0]) <= 0) {
-    throw new Error(`Target ${target} must be newer than latest ${latest}`);
+    throw new Error(`Target ${target} is already published; check npm latest`);
   }
 
   if (isMain) {
@@ -99,10 +153,6 @@ export function planRelease({
     return { ...plan, version: target, action: 'publish' };
   }
 
-  const betaTag = registry['dist-tags']?.beta;
-  if (betaTag && compareStable(target, betaTag.split('-')[0]) < 0) {
-    throw new Error(`A newer beta line ${betaTag} is already active`);
-  }
   const candidates = [
     ...new Set([...Object.keys(versions), ...Object.keys(tags)]),
   ]
@@ -170,30 +220,158 @@ function verifyCheckout(cwd, sha) {
     throw new Error('Checkout does not match the release commit');
 }
 
+async function releaseContext(env) {
+  const sha = env.RELEASE_SHA ?? env.GITHUB_SHA;
+  const event = env.GITHUB_EVENT_PATH
+    ? JSON.parse(readFileSync(env.GITHUB_EVENT_PATH, 'utf8'))
+    : {};
+  let pull;
+  if (env.GITHUB_EVENT_NAME === 'pull_request') {
+    pull = event.pull_request;
+    if (pull?.head.repo?.full_name !== env.GITHUB_REPOSITORY) {
+      return { sha, reason: 'Fork PRs run checks without publishing' };
+    }
+    pull = await githubGet(`pulls/${pull.number}`, env);
+  } else if (env.GITHUB_REF === 'refs/heads/main') {
+    return { sha, mode: 'stable', baseSha: sha };
+  } else if (
+    env.GITHUB_EVENT_NAME === 'workflow_dispatch' &&
+    env.GITHUB_REF?.startsWith('refs/heads/')
+  ) {
+    const branch = env.GITHUB_REF.slice('refs/heads/'.length);
+    const owner = env.GITHUB_REPOSITORY.split('/')[0];
+    const query = new URLSearchParams({
+      state: 'open',
+      base: 'main',
+      head: `${owner}:${branch}`,
+    });
+    const pulls = await githubGet(`pulls?${query}`, env);
+    if (pulls?.length !== 1) {
+      return { sha, reason: 'Open a PR into main before building a beta' };
+    }
+    pull = pulls[0];
+  } else {
+    return { sha, reason: 'Beta publishing starts when a PR is opened' };
+  }
+
+  if (
+    !pull ||
+    pull.state !== 'open' ||
+    pull.base.ref !== 'main' ||
+    pull.head.repo?.full_name !== env.GITHUB_REPOSITORY ||
+    pull.draft
+  ) {
+    return { sha, reason: 'Beta requires an open, ready PR into main' };
+  }
+  if (pull.head.sha !== sha) {
+    return { sha, reason: 'A newer commit is already in this PR' };
+  }
+  return {
+    sha,
+    mode: 'beta',
+    title: pull.title,
+    pullRequest: pull.number,
+    baseSha: pull.base.sha,
+  };
+}
+
+async function readChanges(cwd, context, registry, tags, env) {
+  // A retry may refer to an older stable commit after a newer release exists.
+  if (
+    context.mode === 'stable' &&
+    Object.entries(registry.versions ?? {}).some(
+      ([version, metadata]) =>
+        stablePattern.test(version) &&
+        sameCommit(metadata, tags[version], context.sha)
+    )
+  ) {
+    return [];
+  }
+  const latest = registry['dist-tags']?.latest;
+  const baseline = latest
+    ? (registry.versions?.[latest]?.gitHead ?? tags[latest])
+    : undefined;
+  if (latest && !/^[a-f0-9]{40}$/.test(baseline ?? '')) {
+    throw new Error(`Cannot find the source commit for stable ${latest}`);
+  }
+  if (baseline) {
+    try {
+      execFileSync(
+        'git',
+        ['merge-base', '--is-ancestor', baseline, context.baseSha],
+        {
+          cwd,
+          stdio: 'pipe',
+        }
+      );
+      if (context.mode === 'beta') {
+        execFileSync(
+          'git',
+          ['merge-base', '--is-ancestor', baseline, context.sha],
+          {
+            cwd,
+            stdio: 'pipe',
+          }
+        );
+      }
+    } catch {
+      throw new Error(`Checkout is behind stable ${latest}; update from main`);
+    }
+  }
+  const output = execFileSync(
+    'git',
+    [
+      'log',
+      '--first-parent',
+      '--reverse',
+      '--format=%H%x00%B%x00',
+      baseline ? `${baseline}..${context.baseSha}` : context.baseSha,
+    ],
+    { cwd, encoding: 'utf8' }
+  );
+  const fields = output.split('\0');
+  const messages = [];
+  for (let i = 0; i + 1 < fields.length; i += 2) {
+    const commit = fields[i].trim();
+    const pulls = await githubGet(`commits/${commit}/pulls`, env);
+    const merged = pulls?.filter(
+      (pull) => pull.merged_at && pull.base.ref === 'main'
+    );
+    const pull =
+      merged?.find((candidate) => candidate.merge_commit_sha === commit) ??
+      merged?.[0];
+    messages.push(pull?.title ?? fields[i + 1]);
+  }
+  return messages;
+}
+
+async function currentPlan(cwd, env, pkg, loadRegistry, extraTags = {}) {
+  const context = await releaseContext(env);
+  const skip = (reason) => ({
+    name: pkg.name,
+    sha: context.sha,
+    action: 'skip',
+    reason,
+  });
+  if (context.reason) return skip(context.reason);
+  if (context.mode === 'beta' && !validateTitle(context.title)) {
+    return skip('PR has no release changes');
+  }
+  const registry = await loadRegistry(pkg.name);
+  const tags = { ...readTags(cwd), ...extraTags };
+  const changes = await readChanges(cwd, context, registry, tags, env);
+  return planRelease({ name: pkg.name, ...context, registry, tags, changes });
+}
+
 export async function prepareRelease({
   cwd = process.cwd(),
   env = process.env,
   loadRegistry = readRegistry,
 } = {}) {
-  verifyCheckout(cwd, env.GITHUB_SHA);
+  verifyCheckout(cwd, env.RELEASE_SHA ?? env.GITHUB_SHA);
   const packagePath = join(cwd, 'package.json');
   const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
-  const options = {
-    name: pkg.name,
-    version: pkg.version,
-    ref: env.GITHUB_REF,
-    sha: env.GITHUB_SHA,
-    betaBranch: env.NPM_BETA_BRANCH,
-  };
-  const draft = planRelease({ ...options, registry: {} });
-  const plan =
-    draft.action === 'skip'
-      ? draft
-      : planRelease({
-          ...options,
-          registry: await loadRegistry(pkg.name),
-          tags: readTags(cwd),
-        });
+  const plan = await currentPlan(cwd, env, pkg, loadRegistry);
   if (plan.action !== 'skip') {
     mkdirSync(join(cwd, '.release'), { recursive: true });
     writeFileSync(
@@ -270,32 +448,28 @@ export async function publishRelease({
   const plan = JSON.parse(
     readFileSync(join(cwd, '.release/plan.json'), 'utf8')
   );
-  verifyCheckout(cwd, env.GITHUB_SHA);
+  const sha = env.RELEASE_SHA ?? env.GITHUB_SHA;
+  verifyCheckout(cwd, sha);
   const pkg = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8'));
-  const expectedTag = env.GITHUB_REF === 'refs/heads/main' ? 'latest' : 'beta';
   if (
-    plan.sha !== env.GITHUB_SHA ||
+    plan.sha !== sha ||
     plan.name !== pkg.name ||
-    plan.distTag !== expectedTag ||
     !['publish', 'recover'].includes(plan.action)
   ) {
     throw new Error('Release artifact does not match this workflow');
   }
   const registry = await loadRegistry(plan.name);
   const tagExists = await checkTag(plan, env);
-  const expected = planRelease({
-    name: pkg.name,
-    version: pkg.version,
-    ref: env.GITHUB_REF,
-    sha: plan.sha,
-    registry,
-    betaBranch: env.NPM_BETA_BRANCH,
-    tags: {
-      ...readTags(cwd),
-      ...(tagExists ? { [plan.version]: plan.sha } : {}),
-    },
+  const expected = await currentPlan(cwd, env, pkg, async () => registry, {
+    ...(tagExists ? { [plan.version]: plan.sha } : {}),
   });
-  if (expected.action === 'skip' || expected.version !== plan.version) {
+  if (
+    expected.action === 'skip' ||
+    expected.version !== plan.version ||
+    expected.distTag !== plan.distTag ||
+    expected.pullRequest !== plan.pullRequest ||
+    expected.title !== plan.title
+  ) {
     throw new Error('Release plan is no longer current');
   }
   const published = registry.versions?.[plan.version];
@@ -348,6 +522,12 @@ export async function publishRelease({
       '--generate-notes',
     ];
     if (plan.distTag === 'beta') args.push('--prerelease', '--latest=false');
+    else if (
+      registry['dist-tags']?.latest &&
+      compareStable(plan.version, registry['dist-tags'].latest) < 0
+    ) {
+      args.push('--latest=false');
+    }
     run('gh', args);
   }
 }
@@ -359,5 +539,13 @@ if (
   const command = process.argv[2];
   if (command === 'prepare') await prepareRelease();
   else if (command === 'publish') await publishRelease();
-  else throw new Error('Usage: node scripts/release.mjs <prepare|publish>');
+  else if (command === 'validate') {
+    const event = JSON.parse(
+      readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')
+    );
+    validateTitle(event.pull_request?.title);
+  } else
+    throw new Error(
+      'Usage: node scripts/release.mjs <prepare|publish|validate>'
+    );
 }

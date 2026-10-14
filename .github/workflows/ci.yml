@@ -4,12 +4,10 @@ on:
   push:
     branches-ignore:
       - main
-      - 'feature/**'
       - coverage
   pull_request:
-    branches:
+    branches-ignore:
       - main
-      - 'feature/**'
   merge_group:
     types:
       - checks_requested
@@ -48,6 +46,10 @@ jobs:
 
       - name: Test release automation
         run: yarn test:release
+
+      - name: Validate PR title
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        run: node scripts/release.mjs validate
 
       - name: Summarize coverage
         if: ${{ !cancelled() && hashFiles('coverage/coverage-summary.json') != '' }}
