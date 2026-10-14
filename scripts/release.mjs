@@ -100,11 +100,13 @@ export function verifyArtifact({ cwd = process.cwd() } = {}) {
       throw new Error(`Native package file is missing: ${path}`);
     }
   }
-  if (
-    pkg.files?.includes('*.podspec') &&
-    ![...contents].some((path) => /^package\/[^/]+\.podspec$/.test(path))
-  ) {
-    throw new Error('Package podspec is missing');
+  if (pkg.files?.includes('*.podspec')) {
+    for (const file of readdirSync(cwd).filter((path) =>
+      path.endsWith('.podspec')
+    )) {
+      if (!contents.has(`package/${file}`))
+        throw new Error(`Package podspec is missing: ${file}`);
+    }
   }
   return { file, name: pkg.name, version: pkg.version, sha };
 }

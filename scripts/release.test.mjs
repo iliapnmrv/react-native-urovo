@@ -176,6 +176,17 @@ test('packing records the source commit and validates real tarball entry points'
   assert.equal(packed.version, '1.1.1');
 });
 
+test('an Android-only package may declare an unused podspec glob', (t) => {
+  const f = fixture(t);
+  const path = join(f.cwd, 'package.json');
+  const pkg = JSON.parse(readFileSync(path, 'utf8'));
+  pkg.files.push('*.podspec');
+  writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+  f.commit('chore: use the standard native package file list');
+  f.pack();
+  assert.doesNotThrow(() => verifyArtifact(f));
+});
+
 test('missing declarations and a wrong source commit are rejected', (t) => {
   const f = fixture(t);
   rmSync(join(f.cwd, 'index.d.ts'));
