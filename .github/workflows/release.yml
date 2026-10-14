@@ -1,18 +1,14 @@
 name: Release
 
 on:
+  push:
+    branches:
+      - main
+      - 'release/**'
   workflow_dispatch:
     inputs:
-      dist_tag:
-        description: npm distribution tag
-        required: true
-        type: choice
-        default: beta
-        options:
-          - beta
-          - latest
       publish:
-        description: Publish after all checks pass
+        description: Publish after all checks pass (otherwise only build an artifact)
         required: true
         type: boolean
         default: false
@@ -20,54 +16,58 @@ on:
 permissions:
   contents: read
 
+# Keep version allocation and publishing in the same queue, including retries.
+concurrency:
+  group: npm-release-${{ github.repository }}
+  queue: max
+
 jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      id-token: write
+
   build:
+    needs: checks
     runs-on: ubuntu-latest
+    outputs:
+      action: ${{ steps.release.outputs.action }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Ensure publishing runs from main
-        if: inputs.publish
-        run: |
-          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
-            echo "Publishing is only allowed from main"
-            exit 1
-          fi
-
-      - name: Lint
-        run: yarn lint
-
-      - name: Typecheck
-        run: yarn typecheck
-
-      - name: Test
-        run: yarn test:ci
+      - name: Prepare release version
+        id: release
+        run: node scripts/release.mjs prepare
 
       - name: Build package
+        if: steps.release.outputs.action == 'publish'
         run: yarn prepare
 
-      - name: Ensure dist-tag matches the package version
-        env:
-          DIST_TAG: ${{ inputs.dist_tag }}
-        run: |
-          node -e "const p=require('./package.json'); const pre=p.version.includes('-'); if (process.env.DIST_TAG === 'latest' && pre) throw new Error('A prerelease cannot be published with the latest tag'); if (process.env.DIST_TAG === 'beta' && !pre) throw new Error('A stable version cannot be published with the beta tag')"
-
       - name: Pack
-        run: npm pack --ignore-scripts
+        if: steps.release.outputs.action == 'publish'
+        run: npm pack --ignore-scripts --pack-destination .release
 
       - name: Upload package artifact
+        if: steps.release.outputs.action != 'skip'
         uses: actions/upload-artifact@v4
         with:
-          name: npm-package
-          path: react-native-urovo-*.tgz
+          name: npm-package-${{ github.run_id }}
+          path: .release/*
           if-no-files-found: error
+          include-hidden-files: true
+          overwrite: true
 
   publish:
-    if: inputs.publish
+    if: >-
+      needs.build.outputs.action != 'skip' &&
+      (github.event_name == 'push' || inputs.publish)
     needs: build
     runs-on: ubuntu-latest
     environment: npm
@@ -77,12 +77,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download package artifact
         uses: actions/download-artifact@v4
         with:
-          name: npm-package
-          path: package
+          name: npm-package-${{ github.run_id }}
+          path: .release
 
       - name: Setup Node.js for npm
         uses: actions/setup-node@v4
@@ -92,20 +94,7 @@ jobs:
       - name: Setup npm with Trusted Publishing support
         run: npm install --global "npm@^11.5.1"
 
-      - name: Publish to npm
-        env:
-          DIST_TAG: ${{ inputs.dist_tag }}
-        run: npm publish ./package/react-native-urovo-*.tgz --tag "$DIST_TAG" --registry https://registry.npmjs.org
-
-      - name: Create GitHub tag and release
+      - name: Publish package and create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          TAG="v$VERSION"
-
-          if [[ "$VERSION" == *-* ]]; then
-            gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --generate-notes --prerelease
-          else
-            gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
-          fi
+        run: node scripts/release.mjs publish

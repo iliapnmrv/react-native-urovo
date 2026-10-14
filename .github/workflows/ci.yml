@@ -2,14 +2,17 @@ name: CI
 
 on:
   push:
-    branches:
+    branches-ignore:
       - main
+      - 'release/**'
   pull_request:
     branches:
       - main
+      - 'release/**'
   merge_group:
     types:
       - checks_requested
+  workflow_call:
 
 permissions:
   contents: read
@@ -44,6 +47,9 @@ jobs:
 
       - name: Run unit tests
         run: yarn test:ci
+
+      - name: Test release automation
+        run: yarn test:release
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
@@ -120,6 +126,6 @@ jobs:
 
       - name: Build example for Android
         env:
-          JAVA_OPTS: "-XX:MaxHeapSize=6g"
+          JAVA_OPTS: '-XX:MaxHeapSize=6g'
         run: |
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"

@@ -42,6 +42,7 @@
     "example": "yarn workspace react-native-urovo-example",
     "test": "jest",
     "test:ci": "jest --maxWorkers=2 --coverage --watchman=false",
+    "test:release": "node --test scripts/release.test.mjs",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
