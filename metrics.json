@@ -1,0 +1,35 @@
+{
+  "commit": "521ee33b574c4cf35ed7468c650c40f2c626b9a0",
+  "coverage": {
+    "lines": {
+      "total": 57,
+      "covered": 57,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 61,
+      "covered": 57,
+      "skipped": 0,
+      "pct": 93.44
+    },
+    "functions": {
+      "total": 28,
+      "covered": 24,
+      "skipped": 0,
+      "pct": 85.71
+    },
+    "branches": {
+      "total": 18,
+      "covered": 15,
+      "skipped": 0,
+      "pct": 83.33
+    },
+    "branchesTrue": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    }
+  }
+}
